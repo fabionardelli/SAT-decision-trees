@@ -23,12 +23,18 @@ k = len(pos_x[0])  # number of input features
 
 
 def get_lr(i):
-    """Given a node i, returns all its possible left children."""
+    """
+    Given a node i, returns all its possible left children.
+    LR(i) = even([i + 1, min(2i, n − 1)]), i = 1,...,n
+    """
     return tuple([_ for _ in range(i + 1, min(2 * i, n - 1) + 1) if _ % 2 == 0])
 
 
 def get_rr(i):
-    """Given a node i, returns all its possible right children."""
+    """
+    Given a node i, returns all its possible right children.
+    RR(i) = odd([i + 2, min(2i + 1, n )]), i=1,...,n
+    """
     return tuple([_ for _ in range(i + 2, min(2 * i + 1, n) + 1) if _ % 2 != 0])
 
 
@@ -236,11 +242,13 @@ for r in range(1, k + 1):
 # d0r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
 # d0r,1 = 0
 for r in range(1, k + 1):
-    model.Add(var['d0%i,%i' % (r, 1)] == 0)
+    model.Add(var['d0%i,%i' % (r, 1)] == 0)  # d0r,1 = 0
 
     for j in range(2, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
+            # Here we use intermediate variables to represent complex constraints.
+            # Intermediate variables start with __.
             if i >= 1 and (j in get_lr(i) or j in get_rr(i)) and 'r%i,%i' % (i, j) in var:
                 var['__p%i,%i_AND_d0%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d0%i,%i' % (j, i, r, i))
                 var['__a%i,%i_AND_r%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_r%i,%i' % (r, i, i, j))
@@ -259,18 +267,22 @@ for r in range(1, k + 1):
 
                 or_list.append(var['__p%i,%i_AND_d0%i,%i_OR_a%i,%i_AND_r%i,%i' % (j, i, r, i, r, i, i, j)])
 
+        # d0r,j -> (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
         model.AddBoolOr(or_list).OnlyEnforceIf(var['d0%i,%i' % (r, j)])
+        # d0r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
         model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d0%i,%i' % (r, j)])
 
 # Constraint 8: to discriminate a feature for value 1 at node j = 2,...,n
 # d1r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
 # d1r,1 = 0
 for r in range(1, k + 1):
-    model.Add(var['d1%i,%i' % (r, 1)] == 0)
+    model.Add(var['d1%i,%i' % (r, 1)] == 0)  # d1r,1 = 0
 
     for j in range(2, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
+            # Here we use intermediate variables to represent complex constraints.
+            # Intermediate variables start with __.
             if i >= 1 and (j in get_lr(i) or j in get_rr(i)) and 'l%i,%i' % (i, j) in var:
                 var['__p%i,%i_AND_d1%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d1%i,%i' % (j, i, r, i))
                 var['__a%i,%i_AND_l%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_l%i,%i' % (r, i, i, j))
@@ -289,7 +301,9 @@ for r in range(1, k + 1):
 
                 or_list.append(var['__p%i,%i_AND_d1%i,%i_OR_a%i,%i_AND_l%i,%i' % (j, i, r, i, r, i, i, j)])
 
+        # d1r,j -> (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
         model.AddBoolOr(or_list).OnlyEnforceIf(var['d1%i,%i' % (r, j)])
+        # d1r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
         model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d1%i,%i' % (r, j)])
 
 '''
@@ -319,6 +333,8 @@ for r in range(1, k + 1):
     for j in range(1, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
+            # Here we use intermediate variables to represent complex constraints.
+            # Intermediate variables start with __.
             if i >= 1:  # and j in getLR(i) or j in getRR(i):
                 # ur,i ^ pj,i -> -ar,j
                 var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)] = model.NewBoolVar('__u%i,%i_AND_p%i,%i' % (r, i, j, i))
