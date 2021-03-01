@@ -1,7 +1,8 @@
 from core import get_solutions
+from dataclasses import dataclass
 import pydot
 
-
+'''
 class Node:
     def __init__(self, value):
         self.value = value
@@ -31,6 +32,8 @@ class BinTree:
             return self.nodes[2 * n + 2]
         except IndexError as e:
             print(e)
+            
+            
 
 
 n1 = Node('a')
@@ -55,3 +58,70 @@ for i, s in enumerate(solutions):
         g.add_edge(pydot.Edge(k, v, color='black'))
 
     g.write_png('t%i.png' % i)
+'''
+
+
+@dataclass
+class Node:
+    id: int
+    x: int = None  # input feature assigned to the node
+    leaf: bool = False
+    y: int = 0  # only for a leaf node
+
+
+class DecisionTree:
+    def __init__(self, solution):
+        self.nodes = {}
+        self.tree = {}
+
+        v_var = solution['v']
+        for k, v in v_var.items():
+            self.nodes[k] = Node(k)
+            if v == 0:
+                self.tree[k] = []
+            else:
+                self.nodes[k].leaf = True
+                self.tree[k] = None
+
+        l_var = solution['l']
+        for k, v in l_var.items():
+            self.tree[k].append(v)
+
+        r_var = solution['r']
+        for k, v in r_var.items():
+            self.tree[k].append(v)
+
+        a_var = solution['a']
+        for k, v in a_var.items():
+            self.nodes[v].x = k
+
+        c_var = solution['c']
+        for k, v in c_var.items():
+            self.nodes[k].y = v
+
+    def predict(self, item):
+        # create a dictionary of pairs (feature_number, feature_value)
+        item_data = {i: item[i - 1] for i in range(1, len(item) + 1)}
+
+        current_node = self.nodes[1]  # get the tree root
+
+        while not current_node.leaf:
+            if current_node.x in item_data:
+                if item_data[current_node.x] == 0:
+                    # next node is left child
+                    next_node = self.nodes[self.tree[current_node.id][0]]
+                else:
+                    # next node is right child
+                    next_node = self.nodes[self.tree[current_node.id][1]]
+
+                current_node = next_node
+
+        print(current_node.y)
+
+
+solutions = get_solutions()
+dt = DecisionTree(solutions[0])
+print(dt.tree)
+print(dt.nodes)
+example = [1, 0, 0, 1]
+dt.predict(example)
