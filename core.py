@@ -1,3 +1,8 @@
+# This software implements a method for learning a decision tree as a SAT problem,
+# as shown in the paper "Learning Optimal Decision Trees with SAT" by Nina Narodytska et al., 2018
+# All credit for the encoding proposed here must be given to the authors of the paper.
+# Author: Fabio Nardelli
+
 import numpy as np
 from ortools.sat.python import cp_model
 from math import floor
