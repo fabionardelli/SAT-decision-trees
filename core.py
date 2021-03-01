@@ -417,7 +417,7 @@ print('Number of solutions found: %i' % solution_printer.solution_count())
 '''
 
 
-# Stores all the solutions in a list
+# Store all the solutions in a list
 class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
     """Print intermediate solutions."""
 
