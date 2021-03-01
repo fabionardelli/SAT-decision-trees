@@ -297,6 +297,8 @@ for r in range(1, k + 1):
 '''
 
 # Constraint 9: using a feature r at node j, r = 1,...,k, j = 1,...,n
+# AND for i = floor(j/2), j-1 of (ur,i ^ pj,i -> -ar,j)
+# ur,j iff (ar,j OR (OR for i = floor(j/2), j-1 of (ur,j AND pj,i)))
 for r in range(1, k + 1):
     for j in range(1, n + 1):
         or_list = []
@@ -320,6 +322,7 @@ for r in range(1, k + 1):
         model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) == 0, var['u%i,%i' % (r, j)].Not())
 
 # Constraint 10: for a non-leaf node j, exactly one feature is used
+# NOT vj -> (SUM for r=1, k of ar,j = 1)
 for j in range(1, n + 1):
     s = 0
     for r in range(1, k + 1):
@@ -327,6 +330,7 @@ for j in range(1, n + 1):
     model.Add(s == 1).OnlyEnforceIf(var['v%i' % j].Not())
 
 # Constraint 11: for a leaf node j, no feature is used
+# vj -> (SUM for r=1, k of ar,j = 0)
 for j in range(1, n + 1):
     s = 0
     for r in range(1, k + 1):
@@ -334,7 +338,10 @@ for j in range(1, n + 1):
     model.Add(s == 0).OnlyEnforceIf(var['v%i' % j])
 
 # Constraint 12: any positive example must be discriminated if the leaf
-# node is associated with the negative class
+# node is associated with the negative class.
+# vj AND NOT cj -> OR for r=1, k of d*r,j
+# * = 0 if current training example's feature value is 0
+# * = 1 if current training example's feature value is 1
 for example in pos_x:
     for j in range(1, n + 1):
         or_list = []
@@ -346,7 +353,10 @@ for example in pos_x:
         model.AddBoolOr(or_list).OnlyEnforceIf([var['v%i' % j], var['c%i' % j].Not()])
 
 # Constraint 13: any negative example must be discriminated if the leaf
-# node is associated with the positive class
+# node is associated with the positive class.
+# vj AND cj -> OR for r=1, k of d*r,j
+# * = 0 if current training example's feature value is 0
+# * = 1 if current training example's feature value is 1
 for example in neg_x:
     for j in range(1, n + 1):
         or_list = []
@@ -461,11 +471,14 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
 
         solution = {'v': v_var, 'l': l_var, 'r': r_var, 'a': a_var, 'c': c_var}
 
+        # Check for duplicate solutions
         if solution not in self.solution_list:
             self.solution_list.append(solution)
 
 
 def get_solutions():
+    """ Returns all the possible solutions."""
+
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
     solution_collector = VarArraySolutionCollector(var.values())
@@ -476,7 +489,9 @@ def get_solutions():
     return tuple(solution_collector.solution_list)
 
 
+'''
 sol = get_solutions()
 for item in sol:
     print(item)
 print(len(sol))
+'''
