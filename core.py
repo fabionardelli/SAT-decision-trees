@@ -18,10 +18,12 @@ k = len(pos_x[0])  # number of input features
 
 
 def getLR(i):
+    """Given a node i, returns all its possible left children."""
     return tuple([_ for _ in range(i + 1, min(2 * i, n - 1) + 1) if _ % 2 == 0])
 
 
 def getRR(i):
+    """Given a node i, returns all its possible right children."""
     return tuple([_ for _ in range(i + 2, min(2 * i + 1, n) + 1) if _ % 2 != 0])
 
 
@@ -87,13 +89,12 @@ for i in range(1, k + 1):
 for j in range(1, n + 1):
     var['c%i' % j] = model.NewBoolVar('c%i' % j)
 
-
 # Constraints.
 
 # TREE BUILDING CONSTRAINTS
 # These constraints allow to represent a full binary tree, that is a tree
 # in which each node has exactly 0 or 2 children. Since the tree cannot be
-# made up by the root alone, the number of nodes n must be an odd number >= 3.
+# made up by the root alone, the number of nodes 'n' must be an odd number >= 3.
 # Given n, the constraints permit to find all the possible full binary trees
 # which can be built with n nodes. The number of legit trees with n nodes
 # is given by the Catalan numbers sequence.
@@ -119,7 +120,7 @@ for i in range(1, n + 1):
     for j in getLR(i):
         s += var['l%i,%i' % (i, j)]
     model.Add(s == 1).OnlyEnforceIf(var['v%i' % i].Not())
-#'''
+# '''
 # Constraint 4bis: each left/right child must have exactly a parent
 for j in range(2, n + 1):
     left_sum = 0
@@ -153,7 +154,7 @@ for i in range(n - 2, 0, -1):
                     s += var['r%i,%i' % (h, j - 2)]
             if s > 0:
                 model.Add(s >= 1).OnlyEnforceIf(var['r%i,%i' % (i, j)])
-#'''
+# '''
 # Constraint 5: if the i-th node is a parent then it must have a child
 for i in range(1, n + 1):
     for j in getLR(i):
@@ -170,10 +171,11 @@ for j in range(2, n + 1):
         s.append(var['p%i,%i' % (j, i)])
     model.AddBoolXOr(s)
 
-
 # LEARNING CONSTRAINTS
-# These constraints allow to build a decision tree starting from a
-# dataset of binary features.
+# These constraints allow to learn a decision tree starting from a
+# dataset of binary features. The resulting tree is represented
+# as a total assignment to the variables. The values of these variables
+# must be used to build a tree and implement the classifier.
 '''
 def var_and(a, b):
     return a.GetVarValueMap()[1] == 1 and b.GetVarValueMap()[1] == 1
@@ -299,7 +301,7 @@ for r in range(1, k + 1):
     for j in range(1, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
-            if i >= 1: #and j in getLR(i) or j in getRR(i):
+            if i >= 1:  # and j in getLR(i) or j in getRR(i):
                 # ur,i ^ pj,i -> -ar,j
                 var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)] = model.NewBoolVar('__u%i,%i_AND_p%i,%i' % (r, i, j, i))
                 model.Add(var['u%i,%i' % (r, i)] + var['p%i,%i' % (j, i)] == 2).OnlyEnforceIf(
@@ -398,16 +400,21 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
         self.solution_list = []
 
     def on_solution_callback(self):
-        # self.solution_list.append(['%s=%i' % (v, self.Value(v)) for v in self.__variables])
-        # self.solution_list.append({'%s' % v: self.Value(v) for v in self.__variables})
+        """
+        Store all the possible solutions in a list of dictionaries,
+        where each one represents a solution.
+        A solution, in turn,  is made up by five dictionaries, respectively
+        for the variables v, l, r, a and c.
+        """
+
         v_var = {}
         l_var = {}
         r_var = {}
-        p_var = {}
+        # p_var = {}
         a_var = {}
-        u_var = {}
-        d0_var = {}
-        d1_var = {}
+        # u_var = {}
+        # d0_var = {}
+        # d1_var = {}
         c_var = {}
 
         for v in self.__variables:
@@ -422,10 +429,12 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                     parent = int(str(v)[1:].partition(',')[0])
                     child = int(str(v)[1:].partition(',')[2])
                     r_var[parent] = child
+                    '''
                 elif str(v).startswith('p') and self.Value(v) == 1:
                     child = int(str(v)[1:].partition(',')[0])
                     parent = int(str(v)[1:].partition(',')[2])
                     p_var[child] = parent
+                    '''
                 elif str(v).startswith('a') and self.Value(v) == 1:
                     feature = int(str(v)[1:].partition(',')[0])
                     node = int(str(v)[1:].partition(',')[2])
@@ -461,7 +470,7 @@ def get_solutions():
     solver = cp_model.CpSolver()
     solution_collector = VarArraySolutionCollector(var.values())
     solver.SearchForAllSolutions(model, solution_collector)
-    #solver.SolveWithSolutionCallback(model, solution_collector)
+    # solver.SolveWithSolutionCallback(model, solution_collector)
 
     # return tuple(__ for __ in solution_collector.solution_list)
     return tuple(solution_collector.solution_list)
