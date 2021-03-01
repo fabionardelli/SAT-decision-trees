@@ -420,12 +420,12 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
         v_var = {}
         l_var = {}
         r_var = {}
-        # p_var = {}
         a_var = {}
+        c_var = {}
+        # p_var = {}
         # u_var = {}
         # d0_var = {}
         # d1_var = {}
-        c_var = {}
 
         for v in self.__variables:
             try:
@@ -439,17 +439,17 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                     parent = int(str(v)[1:].partition(',')[0])
                     child = int(str(v)[1:].partition(',')[2])
                     r_var[parent] = child
+                elif str(v).startswith('a') and self.Value(v) == 1:
+                    feature = int(str(v)[1:].partition(',')[0])
+                    node = int(str(v)[1:].partition(',')[2])
+                    a_var[feature] = node
+                elif str(v).startswith('c') and self.Value(v) == 1:
+                    c_var[int(str(v)[1:])] = self.Value(v)
                     '''
                 elif str(v).startswith('p') and self.Value(v) == 1:
                     child = int(str(v)[1:].partition(',')[0])
                     parent = int(str(v)[1:].partition(',')[2])
                     p_var[child] = parent
-                    '''
-                elif str(v).startswith('a') and self.Value(v) == 1:
-                    feature = int(str(v)[1:].partition(',')[0])
-                    node = int(str(v)[1:].partition(',')[2])
-                    a_var[feature] = node
-                    '''
                 elif str(v).startswith('u') and self.Value(v) == 1:
                     feature = int(str(v)[1:].partition(',')[0])
                     node = int(str(v)[1:].partition(',')[2])
@@ -463,8 +463,6 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                     node = int(str(v)[2:].partition(',')[2])
                     d1_var[feature] = node
                     '''
-                elif str(v).startswith('c') and self.Value(v) == 1:
-                    c_var[int(str(v)[1:])] = self.Value(v)
             except Exception as e:
                 traceback.print_exc()
                 raise e
