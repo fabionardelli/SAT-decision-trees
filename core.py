@@ -17,12 +17,12 @@ n = 5  # number of nodes
 k = len(pos_x[0])  # number of input features
 
 
-def getLR(i):
+def get_lr(i):
     """Given a node i, returns all its possible left children."""
     return tuple([_ for _ in range(i + 1, min(2 * i, n - 1) + 1) if _ % 2 == 0])
 
 
-def getRR(i):
+def get_rr(i):
     """Given a node i, returns all its possible right children."""
     return tuple([_ for _ in range(i + 2, min(2 * i + 1, n) + 1) if _ % 2 != 0])
 
@@ -43,13 +43,13 @@ for i in range(1, n + 1):
 # Create a variable 'l' for each possible left child of current node
 # It is True iff node i has node j as left child
 for i in range(1, n + 1):
-    for j in getLR(i):
+    for j in get_lr(i):
         var['l%i,%i' % (i, j)] = model.NewBoolVar('l%i,%i' % (i, j))
 
 # Create a variable 'r' for each possible right child of current node
 # It is True iff node i has node j as right child
 for i in range(1, n + 1):
-    for j in getRR(i):
+    for j in get_rr(i):
         var['r%i,%i' % (i, j)] = model.NewBoolVar('r%i,%i' % (i, j))
 
 # Create a variable 'p' to tell the parent of current node
@@ -99,25 +99,29 @@ for j in range(1, n + 1):
 # which can be built with n nodes. The number of legit trees with n nodes
 # is given by the Catalan numbers sequence.
 
-# Constraint 1: the root node is not a leaf
+# Constraint 1: the root node is not a leaf.
+# NOT v1
 model.Add(var['v1'] == 0)
 
-# Constraint 2: if a node is a leaf node, then it has no children
+# Constraint 2: if a node is a leaf node, then it has no children.
+# vi -> NOT li,j, j in LR(i)
 for i in range(1, n + 1):
-    for j in getLR(i):
+    for j in get_lr(i):
         model.AddImplication(var['v%i' % i], var['l%i,%i' % (i, j)].Not())
 
 # Constraint 3: the left child and the right child of the i-th node
-# are numbered consecutively
+# are numbered consecutively.
+# li,j <-> ri,j+1, j in LR(i)
 for i in range(1, n + 1):
-    for j in getLR(i):
+    for j in get_lr(i):
         model.AddImplication(var['l%i,%i' % (i, j)], var['r%i,%i' % (i, j + 1)])
         model.AddImplication(var['r%i,%i' % (i, j + 1)], var['l%i,%i' % (i, j)])
 
-# Constraint 4: a non-leaf node must have a child
+# Constraint 4: a non-leaf node must have a child.
+# NOT vi -> (SUM for j in LR(i) of li,j = 1)
 for i in range(1, n + 1):
     s = 0
-    for j in getLR(i):
+    for j in get_lr(i):
         s += var['l%i,%i' % (i, j)]
     model.Add(s == 1).OnlyEnforceIf(var['v%i' % i].Not())
 # '''
@@ -138,7 +142,7 @@ for j in range(2, n + 1):
 # Constraint 4ter: nodes on the same level must be labeled increasingly
 # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
 for i in range(n - 2, 0, -1):
-    for j in reversed(getLR(i)):
+    for j in reversed(get_lr(i)):
         if 'l%i,%i' % (i, j) in var:
             s = 0
             for h in range(i - 1, 0, -1):
@@ -146,7 +150,7 @@ for i in range(n - 2, 0, -1):
                     s += var['l%i,%i' % (h, j - 2)]
             if s > 0:
                 model.Add(s >= 1).OnlyEnforceIf(var['l%i,%i' % (i, j)])
-    for j in reversed(getRR(i)):
+    for j in reversed(get_rr(i)):
         if 'r%i,%i' % (i, j) in var:
             s = 0
             for h in range(i - 1, 0, -1):
@@ -156,15 +160,18 @@ for i in range(n - 2, 0, -1):
                 model.Add(s >= 1).OnlyEnforceIf(var['r%i,%i' % (i, j)])
 # '''
 # Constraint 5: if the i-th node is a parent then it must have a child
+# pj,i <-> li,j, j in LR(i)
+# pj,i <-> ri,j, j in RR(i)
 for i in range(1, n + 1):
-    for j in getLR(i):
+    for j in get_lr(i):
         model.AddImplication(var['p%i,%i' % (j, i)], var['l%i,%i' % (i, j)])
         model.AddImplication(var['l%i,%i' % (i, j)], var['p%i,%i' % (j, i)])
-    for j in getRR(i):
+    for j in get_rr(i):
         model.AddImplication(var['p%i,%i' % (j, i)], var['r%i,%i' % (i, j)])
         model.AddImplication(var['r%i,%i' % (i, j)], var['p%i,%i' % (j, i)])
 
-# Constraint 6: all the nodes but the first must have a parent
+# Constraint 6: all the nodes but the first must have a parent.
+# (SUM for i=floor(j/2), min(j-1, N) of pj,i = 1), j =2,...,n
 for j in range(2, n + 1):
     s = []
     for i in range(floor(j / 2), min(j - 1, n) + 1):
@@ -221,13 +228,15 @@ for r in range(1, k + 1):
 '''
 
 # Constraint 7: to discriminate a feature for value 0 at node j = 2,...,n
+# d0r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
+# d0r,1 = 0
 for r in range(1, k + 1):
     model.Add(var['d0%i,%i' % (r, 1)] == 0)
 
     for j in range(2, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
-            if i >= 1 and (j in getLR(i) or j in getRR(i)) and 'r%i,%i' % (i, j) in var:
+            if i >= 1 and (j in get_lr(i) or j in get_rr(i)) and 'r%i,%i' % (i, j) in var:
                 var['__p%i,%i_AND_d0%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d0%i,%i' % (j, i, r, i))
                 var['__a%i,%i_AND_r%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_r%i,%i' % (r, i, i, j))
 
@@ -249,13 +258,15 @@ for r in range(1, k + 1):
         model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d0%i,%i' % (r, j)])
 
 # Constraint 8: to discriminate a feature for value 1 at node j = 2,...,n
+# d1r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
+# d1r,1 = 0
 for r in range(1, k + 1):
     model.Add(var['d1%i,%i' % (r, 1)] == 0)
 
     for j in range(2, n + 1):
         or_list = []
         for i in range(floor(j / 2), j):
-            if i >= 1 and (j in getLR(i) or j in getRR(i)) and 'l%i,%i' % (i, j) in var:
+            if i >= 1 and (j in get_lr(i) or j in get_rr(i)) and 'l%i,%i' % (i, j) in var:
                 var['__p%i,%i_AND_d1%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d1%i,%i' % (j, i, r, i))
                 var['__a%i,%i_AND_l%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_l%i,%i' % (r, i, i, j))
 
@@ -298,7 +309,7 @@ for r in range(1, k + 1):
 
 # Constraint 9: using a feature r at node j, r = 1,...,k, j = 1,...,n
 # AND for i = floor(j/2), j-1 of (ur,i ^ pj,i -> -ar,j)
-# ur,j iff (ar,j OR (OR for i = floor(j/2), j-1 of (ur,j AND pj,i)))
+# ur,j <-> (ar,j OR (OR for i = floor(j/2), j-1 of (ur,j AND pj,i)))
 for r in range(1, k + 1):
     for j in range(1, n + 1):
         or_list = []
@@ -367,7 +378,8 @@ for example in neg_x:
                 or_list.append(var['d1%i,%i' % (r, j)])
         model.AddBoolOr(or_list).OnlyEnforceIf([var['v%i' % j], var['c%i' % j]])
 
-# Constraint 13-bis: only a leaf node can be associated to a class
+# Constraint 13-bis: only a leaf node can be associated to a class.
+# ci -> vi, i=1,..,n
 for i in range(1, n + 1):
     model.AddImplication(var['c%i' % i], var['v%i' % i])
 
