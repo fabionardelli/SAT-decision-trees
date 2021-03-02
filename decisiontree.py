@@ -70,20 +70,35 @@ class Node:
 
 
 class DecisionTree:
+    # Class used to implement a decision tree classifier.
+    # A decision tree is made up by a full binary tree,
+    # a tree in which each node has exactly 0 or 2 children.
+    # For example, a 5 node decision tree could be like this:
+    #     1
+    #    / \
+    #   2   3
+    #  / \
+    # 4   5
+    # Here, node 1 is the root, node 2 is an intermediate node
+    # and nodes 3, 4 and 5 are leaves.
+
     def __init__(self):
         # Dictionary used to store the nodes of the tree.
         # The keys are the nodes' ids and the values are
         # Node objects, representing the nodes' data.
+        # For example, for the 5 node tree represented above,
+        # 'nodes' would be like:
+        # {1: Node(id=1, x=2, leaf=False, y=0), 2: Node(id=2, x=1, leaf=False, y=0),
+        #  3: Node(id=3, x=None, leaf=True, y=0), 4: Node(id=4, x=None, leaf=True, y=1),
+        #  5: Node(id=5, x=None, leaf=True, y=0)}
         self.nodes = {}
 
         # Dictionary used to represent the tree structure.
         # The keys are the nodes' ids and the values are lists
         # of left and right children's ids, if the key node is
         # not a leaf, or None otherwise.
-        # For example, for a 5 node tree in which the 1st node is
-        # parent of the 2nd and 3rd node, the 2nd node is
-        # parent of the 4th and the 5th node, and nodes 3, 4 and 5
-        # are leaves, the tree_structure would be like:
+        # For example, for the 5 node tree represented above,
+        # the tree_structure would be like:
         # {1: [2, 3], 2: [4, 5], 3: None, 4: None, 5: None}
         self.tree_structure = {}
 
@@ -130,7 +145,7 @@ class DecisionTree:
 
     def predict(self, item):
         """ Predicts the class of the item passed as argument."""
-        
+
         # create a dictionary of pairs (feature_number, feature_value)
         item_data = {i: item[i - 1] for i in range(1, len(item) + 1)}
 
