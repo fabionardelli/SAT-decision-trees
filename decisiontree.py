@@ -70,9 +70,25 @@ class Node:
 
 
 class DecisionTree:
-    def __init__(self, solution):
+    def __init__(self):
         self.nodes = {}
         self.tree = {}
+
+    def fit(self, training_data, target_nodes):
+
+        # solve the CSP
+        solutions = []
+
+        while True:
+            solutions = get_solutions(training_data, target_nodes)
+            if len(solutions) > 0:
+                break
+            else:
+                target_nodes += 2
+
+        solution = solutions[0]  # choose the first solution found
+
+        # build the decision tree
 
         v_var = solution['v']
         for k, v in v_var.items():
@@ -116,12 +132,4 @@ class DecisionTree:
 
                 current_node = next_node
 
-        print(current_node.y)
-
-
-solutions = get_solutions()
-dt = DecisionTree(solutions[0])
-print(dt.tree)
-print(dt.nodes)
-example = [1, 0, 0, 1]
-dt.predict(example)
+        return current_node.y
