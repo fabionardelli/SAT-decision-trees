@@ -8,39 +8,32 @@ from ortools.sat.python import cp_model
 from math import floor
 import traceback
 
-pos_x = []  # input features for the positive examples
-neg_x = []  # input features for the negative examples
-
-n = 5  # number of nodes
-k = 0  # number of input features
-
-
-def get_lr(i):
-    """
-    Given a node i, returns all its possible left children.
-    LR(i) = even([i + 1, min(2i, n − 1)]), i = 1,...,n
-    """
-    return tuple([_ for _ in range(i + 1, min(2 * i, n - 1) + 1) if _ % 2 == 0])
-
-
-def get_rr(i):
-    """
-    Given a node i, returns all its possible right children.
-    RR(i) = odd([i + 2, min(2i + 1, n )]), i=1,...,n
-    """
-    return tuple([_ for _ in range(i + 2, min(2 * i + 1, n) + 1) if _ % 2 != 0])
-
-
 # Create the model.
 model = cp_model.CpModel()
-
-# Create the variables.
 
 # Create a dictionary to store all the variables
 var = {}
 
 
-def set_csp():
+def set_csp(pos_x, neg_x, n, k):
+    """Creates the variables and the constraints for a given number of nodes."""
+
+    def get_lr(i):
+        """
+        Given a node i, returns all its possible left children.
+        LR(i) = even([i + 1, min(2i, n − 1)]), i = 1,...,n
+        """
+        return tuple([_ for _ in range(i + 1, min(2 * i, n - 1) + 1) if _ % 2 == 0])
+
+    def get_rr(i):
+        """
+        Given a node i, returns all its possible right children.
+        RR(i) = odd([i + 2, min(2i + 1, n )]), i=1,...,n
+        """
+        return tuple([_ for _ in range(i + 2, min(2 * i + 1, n) + 1) if _ % 2 != 0])
+
+    # Create the variables.
+
     # Create a variable 'v' for each node in the tree
     # It is True iff node i is a leaf node
     for i in range(1, n + 1):
@@ -506,11 +499,6 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
 def get_solutions(data, target_nodes):
     """ Returns all the possible solutions."""
 
-    global pos_x
-    global neg_x
-    global n
-    global k
-
     n = target_nodes  # number of nodes
 
     # boolean mask to select only the rows where the target feature equals 1
@@ -523,7 +511,7 @@ def get_solutions(data, target_nodes):
 
     k = len(pos_x[0])
 
-    set_csp()
+    set_csp(pos_x, neg_x, n, k)
 
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
