@@ -8,3 +8,8 @@ example = [0, 0, 0, 1]
 dt.fit(data, 5)
 predicted_class = dt.predict(example)
 print(predicted_class)
+
+print(dt.nodes)
+print(dt.tree_structure)
+
+dt.draw_tree('tree.png')
