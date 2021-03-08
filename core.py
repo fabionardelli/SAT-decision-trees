@@ -175,7 +175,7 @@ def set_csp(pos_x, neg_x, n, k):
         s = []
         for i in range(floor(j / 2), min(j - 1, n) + 1):
             s.append(var['p%i,%i' % (j, i)])
-        model.AddBoolXOr(s)
+        model.Add(sum(s) == 1)
 
     # LEARNING CONSTRAINTS
     # These constraints allow to learn a decision tree starting from a
