@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_score, recall_score, average_precision_score, f1_score
 from decisiontree import DecisionTree
 
-'''
+
 # load 'car' dataset
 data = pd.read_csv('datasets/car.data', delimiter=',', header=None)
-data = data.sample(n=20)
+data = data.sample(n=30, random_state=1)
 
 
 # preprocess data to get boolean features
@@ -41,38 +42,25 @@ X = boolean_data[:, :-1]
 y = boolean_data[:, -1]
 # split dataset in training and test set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.30, random_state=42)
-print(X_train)
-print(y_train)
+#print(X_train)
+#print(y_train)
 
 dt = DecisionTree()
-dt.fit(X_train, y_train, 5)
+dt.fit_optimal(X_train, y_train)
 
 y_predicted = np.empty(shape=len(y_test), dtype=np.int8)
 
+# collect predictions for each example
 for i, example in enumerate(X_test):
     y_predicted[i] = dt.predict(example)
 
-for i in range(len(y_test)):
+for i, example in enumerate(y_test):
     print(y_test[i], y_predicted[i])
 
-print(y_test)
-'''
-data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
-X = data[:, :-1]
-y = data[:, -1]
-dt = DecisionTree()
-#example = [0, 0, 0, 1]
+print('Precision:', precision_score(y_test, y_predicted))
+print('Recall:', recall_score(y_test, y_predicted))
+print('Avg precision:', average_precision_score(y_test, y_predicted))
+print('F1:', f1_score(y_test, y_predicted))
 
-# find optimal decision tree
-#n = dt.fit_optimal(X, y)
-print(dt.fit(X, y, 9))
 
-for example in X:
-    predicted_class = dt.predict(example)
-    print(predicted_class)
-
-print(dt.nodes)
-print(dt.tree_structure)
-
-#dt.draw_tree('tree.png')
 

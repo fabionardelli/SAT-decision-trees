@@ -61,7 +61,6 @@ class DecisionTree:
         self.trained = True
 
         solution = solutions[0]  # choose the first solution found
-        #print(solution)
 
         # build the decision tree
         try:

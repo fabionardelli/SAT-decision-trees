@@ -547,10 +547,10 @@ def get_solutions(x_values, y_values, target_nodes):
     # status = solver.StatusName(status_code)
     # solver.SolveWithSolutionCallback(model, solution_collector)
 
-    #solution_collector = VarArraySolutionPrinter(var.values())
-    #status = solver.SearchForAllSolutions(model, solution_collector)
-    #print('Status = %s' % solver.StatusName(status))
-    #print('Number of solutions found: %i' % solution_collector.solution_count())
+    # solution_collector = VarArraySolutionPrinter(var.values())
+    # status = solver.SearchForAllSolutions(model, solution_collector)
+    # print('Status = %s' % solver.StatusName(status))
+    # print('Number of solutions found: %i' % solution_collector.solution_count())
 
     return tuple(solution_collector.solution_list)
 
