@@ -3,8 +3,8 @@ import numpy as np
 
 def make_boolean_dataset(data):
     """
-        Converts a dataset with discrete features into a dataset of boolean features.
-        Returns the boolean dataset.
+        Converts a dataset of discrete features into a dataset of boolean features
+        using One-Hot Encoding. Returns the boolean dataset.
     """
 
     feature_domains = []  # to store features domains
