@@ -61,6 +61,7 @@ class DecisionTree:
         self.trained = True
 
         solution = solutions[0]  # choose the first solution found
+        #print(solution)
 
         # build the decision tree
         try:
@@ -83,7 +84,7 @@ class DecisionTree:
 
             a_var = solution['a']
             for k, v in a_var.items():
-                self.nodes[v].x = k
+                self.nodes[k].x = v
 
             c_var = solution['c']
             for k, v in c_var.items():

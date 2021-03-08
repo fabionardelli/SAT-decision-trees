@@ -265,6 +265,8 @@ def set_csp(pos_x, neg_x, n, k):
             model.AddBoolOr(or_list).OnlyEnforceIf(var['d0%i,%i' % (r, j)])
             # d0r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d0%i,%i' % (r, j)])
+            # for exp in or_list:
+            #   model.AddImplication(exp, var['d0%i,%i' % (r, j)])
 
     # Constraint 8: to discriminate a feature for value 1 at node j = 2,...,n
     # d1r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
@@ -299,6 +301,8 @@ def set_csp(pos_x, neg_x, n, k):
             model.AddBoolOr(or_list).OnlyEnforceIf(var['d1%i,%i' % (r, j)])
             # d1r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d1%i,%i' % (r, j)])
+            # for exp in or_list:
+            #   model.AddImplication(exp, var['d1%i,%i' % (r, j)])
 
     '''
     # Constraint 9: using a feature r at node j, r = 1,...,k, j = 1,...,n
@@ -343,6 +347,10 @@ def set_csp(pos_x, neg_x, n, k):
 
             model.AddBoolOr(or_list).OnlyEnforceIf(var['u%i,%i' % (r, j)])
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['u%i,%i' % (r, j)])
+            # for exp in or_list:
+
+            # model.AddImplication(exp, var['u%i,%i' % (r, j)])
+            # model.AddImplication(var['u%i,%i' % (r, j)], exp.Not())
 
             # avoid duplicates
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) == 0, var['u%i,%i' % (r, j)].Not())
@@ -399,7 +407,6 @@ def set_csp(pos_x, neg_x, n, k):
         model.AddImplication(var['c%i' % i], var['v%i' % i])
 
 
-'''
 # To print all solutions
 class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Print intermediate solutions."""
@@ -418,13 +425,13 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def solution_count(self):
         return self.__solution_count
 
-solver = cp_model.CpSolver()
-solution_printer = VarArraySolutionPrinter(var.values())
-status = solver.SearchForAllSolutions(model, solution_printer)
 
-print('Status = %s' % solver.StatusName(status))
-print('Number of solutions found: %i' % solution_printer.solution_count())
-'''
+# solver = cp_model.CpSolver()
+# solution_printer = VarArraySolutionPrinter(var.values())
+# status = solver.SearchForAllSolutions(model, solution_printer)
+
+# print('Status = %s' % solver.StatusName(status))
+# print('Number of solutions found: %i' % solution_printer.solution_count())
 
 
 # Store all the solutions in a list
@@ -473,7 +480,7 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                 elif str(v).startswith('a') and self.Value(v) == 1:
                     feature = int(str(v)[1:].partition(',')[0])
                     node = int(str(v)[1:].partition(',')[2])
-                    a_var[feature] = node
+                    a_var[node] = feature
                 elif str(v).startswith('c') and self.Value(v) == 1:
                     c_var[int(str(v)[1:])] = self.Value(v)
                     '''
@@ -484,15 +491,15 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                 elif str(v).startswith('u') and self.Value(v) == 1:
                     feature = int(str(v)[1:].partition(',')[0])
                     node = int(str(v)[1:].partition(',')[2])
-                    u_var[feature] = node
+                    u_var[node] = feature
                 elif str(v).startswith('d0') and self.Value(v) == 1:
                     feature = int(str(v)[2:].partition(',')[0])
                     node = int(str(v)[2:].partition(',')[2])
-                    d0_var[feature] = node
+                    d0_var[node] = feature
                 elif str(v).startswith('d1') and self.Value(v) == 1:
                     feature = int(str(v)[2:].partition(',')[0])
                     node = int(str(v)[2:].partition(',')[2])
-                    d1_var[feature] = node
+                    d1_var[node] = feature
                     '''
             except Exception as e:
                 traceback.print_exc()
@@ -505,8 +512,8 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
             self.solution_list.append(solution)
 
         # Stop the search after reaching the limit
-        #if self.solution_count >= self.solution_limit:
-        #    self.StopSearch()
+        if self.solution_count >= self.solution_limit:
+            self.StopSearch()
 
 
 def get_solutions(x_values, y_values, target_nodes):
@@ -534,6 +541,7 @@ def get_solutions(x_values, y_values, target_nodes):
 
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
+
     solution_collector = VarArraySolutionCollector(var.values())
     solver.SearchForAllSolutions(model, solution_collector)
     # status = solver.StatusName(status_code)
@@ -546,12 +554,13 @@ def get_solutions(x_values, y_values, target_nodes):
 
     return tuple(solution_collector.solution_list)
 
+
 '''
 data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
 X = data[:, :-1]
 y = data[:, -1]
 
-sol = get_solutions(X, y, 5)
+sol = get_solutions(X, y, 9)
 
 for item in sol:
     print(item)
