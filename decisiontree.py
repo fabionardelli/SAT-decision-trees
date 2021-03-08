@@ -1,5 +1,6 @@
 from core import get_solutions
 from dataclasses import dataclass
+import traceback
 import pydot
 
 
@@ -44,49 +45,95 @@ class DecisionTree:
         # {1: [2, 3], 2: [4, 5], 3: None, 4: None, 5: None}
         self.tree_structure = {}
 
-    def fit(self, training_data, target_nodes):
-        """ Trains the model given a training set and a target number of nodes."""
+        self.trained = False  # True if the tree has been fit
+
+    def fit(self, x_train, y_train, n):
+        """ Trains the model given a training set and a target number of nodes.
+            Returns -1 if the training fails, 0 if succeeds.
+        """
 
         # solve the CSP
+        solutions = get_solutions(x_train, y_train, n)
 
-        while True:
-            solutions = get_solutions(training_data, target_nodes)
-            if len(solutions) > 0:
-                break
-            else:
-                target_nodes += 2
+        if len(solutions) == 0:
+            return -1  # Training failed
+
+        self.trained = True
 
         solution = solutions[0]  # choose the first solution found
 
         # build the decision tree
+        try:
+            v_var = solution['v']
+            for k, v in v_var.items():
+                self.nodes[k] = Node(k)
+                if v == 0:
+                    self.tree_structure[k] = []
+                else:
+                    self.nodes[k].leaf = True
+                    self.tree_structure[k] = None
 
-        v_var = solution['v']
-        for k, v in v_var.items():
-            self.nodes[k] = Node(k)
-            if v == 0:
-                self.tree_structure[k] = []
+            l_var = solution['l']
+            for k, v in l_var.items():
+                self.tree_structure[k].append(v)
+
+            r_var = solution['r']
+            for k, v in r_var.items():
+                self.tree_structure[k].append(v)
+
+            a_var = solution['a']
+            for k, v in a_var.items():
+                self.nodes[v].x = k
+
+            c_var = solution['c']
+            for k, v in c_var.items():
+                self.nodes[k].y = v
+
+            self.trained = True
+        except Exception as e:
+            traceback.print_exc()
+            raise e
+
+        return 0  # Training succeeded
+
+    def fit_optimal(self, x_train, y_train, n=3):
+        """ Find a decision tree with the minimum number of nodes n.
+            Returns n.
+        """
+
+        # if n is even, make it odd >= 3
+        if n % 2 == 0:
+            if n <= 2:
+                n = 3
             else:
-                self.nodes[k].leaf = True
-                self.tree_structure[k] = None
+                n -= 1
 
-        l_var = solution['l']
-        for k, v in l_var.items():
-            self.tree_structure[k].append(v)
+        flag = True
+        status = self.fit(x_train, y_train, n)
 
-        r_var = solution['r']
-        for k, v in r_var.items():
-            self.tree_structure[k].append(v)
+        # increase the number of nodes if too little
+        while status == -1:
+            flag = False
+            n += 2
+            status = self.fit(x_train, y_train, n)
 
-        a_var = solution['a']
-        for k, v in a_var.items():
-            self.nodes[v].x = k
+        # if there is a tree with n nodes, try to find one with less nodes
+        while flag and status != -1 and n > 3:
+            n -= 2
+            status = self.fit(x_train, y_train, n)
+            if status == -1:
+                # the minimum number of nodes eligible is n + 2
+                n += 2
+                status = self.fit(x_train, y_train, n)
+                flag = False
 
-        c_var = solution['c']
-        for k, v in c_var.items():
-            self.nodes[k].y = v
+        return n
 
     def predict(self, item):
         """ Predicts the class of the item passed as argument."""
+
+        if not self.trained:
+            raise ValueError('Classifier has not been trained or no solution have been found!')
 
         # create a dictionary of pairs (feature_number, feature_value)
         item_data = {i: item[i - 1] for i in range(1, len(item) + 1)}
@@ -142,5 +189,5 @@ class DecisionTree:
                 g.add_edge(pydot.Edge(node, left_child, color='black', label='0'))
                 g.add_edge(pydot.Edge(node, right_child, color='black', label='1'))
 
-        # Save the pydot graph as a png image
+        # Save the pydot graph as a .png image
         g.write_png(file_name)

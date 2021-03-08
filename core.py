@@ -8,15 +8,21 @@ from ortools.sat.python import cp_model
 from math import floor
 import traceback
 
-# Create the model.
-model = cp_model.CpModel()
-
-# Create a dictionary to store all the variables
-var = {}
+# Global variables to be used later on.
+model = None  # to store a model for Google OR-Tools
+var = {}  # to store the variables of the csp
 
 
 def set_csp(pos_x, neg_x, n, k):
     """Creates the variables and the constraints for a given number of nodes."""
+
+    # Create the model.
+    global model
+    model = cp_model.CpModel()
+
+    # Create a dictionary to store all the variables
+    global var
+    var = {}
 
     def get_lr(i):
         """
@@ -346,16 +352,24 @@ def set_csp(pos_x, neg_x, n, k):
     for j in range(1, n + 1):
         s = 0
         for r in range(1, k + 1):
-            s += var['a%i,%i' % (r, j)]
+            s += var['a%i,%i' % (r, j)].GetVarValueMap()[1]
         model.Add(s == 1).OnlyEnforceIf(var['v%i' % j].Not())
-
+    '''
+    # Constraint 10: for a non-leaf node j, exactly one feature is used
+    # NOT vj -> (SUM for r=1, k of ar,j = 1)
+    for j in range(1, n + 1):
+        s = []
+        for r in range(1, k + 1):
+            s.append(var['a%i,%i' % (r, j)])
+        model.AddBoolXOr(s).OnlyEnforceIf(var['v%i' % j].Not())
+    '''
     # Constraint 11: for a leaf node j, no feature is used
     # vj -> (SUM for r=1, k of ar,j = 0)
     for j in range(1, n + 1):
-        s = 0
+        s = []
         for r in range(1, k + 1):
-            s += var['a%i,%i' % (r, j)]
-        model.Add(s == 0).OnlyEnforceIf(var['v%i' % j])
+            s.append(var['a%i,%i' % (r, j)])
+        model.Add(sum(_.GetVarValueMap()[1] for _ in s) == 0).OnlyEnforceIf(var['v%i' % j])
 
     # Constraint 12: any positive example must be discriminated if the leaf
     # node is associated with the negative class.
@@ -393,7 +407,7 @@ def set_csp(pos_x, neg_x, n, k):
         model.AddImplication(var['c%i' % i], var['v%i' % i])
 
 
-'''
+
 # To print all solutions
 class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Print intermediate solutions."""
@@ -412,32 +426,32 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def solution_count(self):
         return self.__solution_count
 
+#solver = cp_model.CpSolver()
+#print('Status = %s' % solver.StatusName(status))
+#print('Number of solutions found: %i' % solution_printer.solution_count())
 
-solver = cp_model.CpSolver()
-solution_printer = VarArraySolutionPrinter(var.values())
-status = solver.SearchForAllSolutions(model, solution_printer)
-
-print('Status = %s' % solver.StatusName(status))
-print('Number of solutions found: %i' % solution_printer.solution_count())
-'''
 
 
 # Store all the solutions in a list
 class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
-    """Print intermediate solutions."""
+    """Collect intermediate solutions."""
 
-    def __init__(self, variables):
+    def __init__(self, variables, limit=1):
         cp_model.CpSolverSolutionCallback.__init__(self)
         self.__variables = variables
         self.solution_list = []
+        self.solution_count = 0
+        self.solution_limit = limit
 
     def on_solution_callback(self):
         """
-        Store all the possible solutions in a list of dictionaries,
+        Store all the solutions <= limit in a list of dictionaries,
         where each one represents a solution.
         A solution, in turn,  is made up by five dictionaries, respectively
         for the variables v, l, r, a and c.
         """
+
+        self.solution_count += 1
 
         v_var = {}
         l_var = {}
@@ -495,12 +509,16 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
         if solution not in self.solution_list:
             self.solution_list.append(solution)
 
+        # Stop the search after reaching the limit
+        #if self.solution_count >= self.solution_limit:
+        #    self.StopSearch()
 
-def get_solutions(data, target_nodes):
-    """ Returns all the possible solutions."""
+
+def get_solutions(x_values, y_values, target_nodes):
+    """ Returns all the possible solutions, or an empty tuple if no solution is found."""
 
     n = target_nodes  # number of nodes
-
+    '''
     # boolean mask to select only the rows where the target feature equals 1
     mask = data[:, -1] == 1
     pos_x = data[mask, :-1]  # input features for the positive examples
@@ -508,23 +526,40 @@ def get_solutions(data, target_nodes):
     # boolean mask to select only the rows where the target feature equals 0
     mask = data[:, -1] == 0
     neg_x = data[mask, :-1]  # input features for the negative examples
+    '''
+    # select only the rows where the target feature equals 1
+    pos_x = x_values[y_values.astype(np.bool), :]
 
-    k = len(pos_x[0])
+    # select only the rows where the target feature equals 0
+    neg_x = x_values[~y_values.astype(np.bool), :]
+
+    k = len(x_values[0])
 
     set_csp(pos_x, neg_x, n, k)
 
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
-    solution_collector = VarArraySolutionCollector(var.values())
-    solver.SearchForAllSolutions(model, solution_collector)
+    #solution_collector = VarArraySolutionCollector(var.values())
+    #solver.SearchForAllSolutions(model, solution_collector)
+    # status = solver.StatusName(status_code)
     # solver.SolveWithSolutionCallback(model, solution_collector)
 
-    # return tuple(__ for __ in solution_collector.solution_list)
-    return tuple(solution_collector.solution_list)
+    solution_collector = VarArraySolutionPrinter(var.values())
+    status = solver.SearchForAllSolutions(model, solution_collector)
+    print('Status = %s' % solver.StatusName(status))
+    print('Number of solutions found: %i' % solution_collector.solution_count())
 
+    #return tuple(solution_collector.solution_list)
+
+
+data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+X = data[:, :-1]
+y = data[:, -1]
+
+
+sol = get_solutions(X, y, 5)
 
 '''
-sol = get_solutions()
 for item in sol:
     print(item)
 print(len(sol))
