@@ -418,9 +418,12 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     def solution_count(self):
         return self.__solution_count
 
-#solver = cp_model.CpSolver()
-#print('Status = %s' % solver.StatusName(status))
-#print('Number of solutions found: %i' % solution_printer.solution_count())
+solver = cp_model.CpSolver()
+solution_printer = VarArraySolutionPrinter(var.values())
+status = solver.SearchForAllSolutions(model, solution_printer)
+
+print('Status = %s' % solver.StatusName(status))
+print('Number of solutions found: %i' % solution_printer.solution_count())
 '''
 
 
