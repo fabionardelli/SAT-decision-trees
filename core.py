@@ -181,7 +181,7 @@ def set_csp(pos_x, neg_x, n, k):
         s = []
         for i in range(floor(j / 2), min(j - 1, n) + 1):
             s.append(var['p%i,%i' % (j, i)])
-        model.AddBoolXOr(s)
+        model.Add(sum(s) == 1)
 
     # LEARNING CONSTRAINTS
     # These constraints allow to learn a decision tree starting from a
@@ -352,24 +352,16 @@ def set_csp(pos_x, neg_x, n, k):
     for j in range(1, n + 1):
         s = 0
         for r in range(1, k + 1):
-            s += var['a%i,%i' % (r, j)].GetVarValueMap()[1]
+            s += var['a%i,%i' % (r, j)]
         model.Add(s == 1).OnlyEnforceIf(var['v%i' % j].Not())
-    '''
-    # Constraint 10: for a non-leaf node j, exactly one feature is used
-    # NOT vj -> (SUM for r=1, k of ar,j = 1)
-    for j in range(1, n + 1):
-        s = []
-        for r in range(1, k + 1):
-            s.append(var['a%i,%i' % (r, j)])
-        model.AddBoolXOr(s).OnlyEnforceIf(var['v%i' % j].Not())
-    '''
+
     # Constraint 11: for a leaf node j, no feature is used
     # vj -> (SUM for r=1, k of ar,j = 0)
     for j in range(1, n + 1):
-        s = []
+        s = 0
         for r in range(1, k + 1):
-            s.append(var['a%i,%i' % (r, j)])
-        model.Add(sum(_.GetVarValueMap()[1] for _ in s) == 0).OnlyEnforceIf(var['v%i' % j])
+            s += var['a%i,%i' % (r, j)]
+        model.Add(s == 0).OnlyEnforceIf(var['v%i' % j])
 
     # Constraint 12: any positive example must be discriminated if the leaf
     # node is associated with the negative class.
@@ -407,7 +399,7 @@ def set_csp(pos_x, neg_x, n, k):
         model.AddImplication(var['c%i' % i], var['v%i' % i])
 
 
-
+'''
 # To print all solutions
 class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
     """Print intermediate solutions."""
@@ -429,7 +421,7 @@ class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
 #solver = cp_model.CpSolver()
 #print('Status = %s' % solver.StatusName(status))
 #print('Number of solutions found: %i' % solution_printer.solution_count())
-
+'''
 
 
 # Store all the solutions in a list
@@ -539,27 +531,25 @@ def get_solutions(x_values, y_values, target_nodes):
 
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
-    #solution_collector = VarArraySolutionCollector(var.values())
-    #solver.SearchForAllSolutions(model, solution_collector)
+    solution_collector = VarArraySolutionCollector(var.values())
+    solver.SearchForAllSolutions(model, solution_collector)
     # status = solver.StatusName(status_code)
     # solver.SolveWithSolutionCallback(model, solution_collector)
 
-    solution_collector = VarArraySolutionPrinter(var.values())
-    status = solver.SearchForAllSolutions(model, solution_collector)
-    print('Status = %s' % solver.StatusName(status))
-    print('Number of solutions found: %i' % solution_collector.solution_count())
+    #solution_collector = VarArraySolutionPrinter(var.values())
+    #status = solver.SearchForAllSolutions(model, solution_collector)
+    #print('Status = %s' % solver.StatusName(status))
+    #print('Number of solutions found: %i' % solution_collector.solution_count())
 
-    #return tuple(solution_collector.solution_list)
+    return tuple(solution_collector.solution_list)
 
-
+'''
 data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
 X = data[:, :-1]
 y = data[:, -1]
 
-
 sol = get_solutions(X, y, 5)
 
-'''
 for item in sol:
     print(item)
 print(len(sol))

@@ -65,7 +65,7 @@ dt = DecisionTree()
 
 # find optimal decision tree
 #n = dt.fit_optimal(X, y)
-print(dt.fit(X, y, 7))
+print(dt.fit(X, y, 9))
 '''
 for example in X:
     predicted_class = dt.predict(example)
