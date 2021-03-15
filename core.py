@@ -5,7 +5,7 @@
 
 import numpy as np
 from ortools.sat.python import cp_model
-from math import floor
+from math import floor, ceil
 import traceback
 
 # Global variables to be used later on.
@@ -129,7 +129,7 @@ def set_csp(pos_x, neg_x, n, k):
         for j in get_lr(i):
             s += var['l%i,%i' % (i, j)]
         model.Add(s == 1).OnlyEnforceIf(var['v%i' % i].Not())
-    # '''
+    '''
     # Constraint 4bis: each left/right child must have exactly a parent
     for j in range(2, n + 1):
         left_sum = 0
@@ -163,7 +163,7 @@ def set_csp(pos_x, neg_x, n, k):
                         s += var['r%i,%i' % (h, j - 2)]
                 if s > 0:
                     model.Add(s >= 1).OnlyEnforceIf(var['r%i,%i' % (i, j)])
-    # '''
+    '''
     # Constraint 5: if the i-th node is a parent then it must have a child
     # pj,i <-> li,j, j in LR(i)
     # pj,i <-> ri,j, j in RR(i)
@@ -188,49 +188,6 @@ def set_csp(pos_x, neg_x, n, k):
     # dataset of binary features. The resulting tree is represented
     # as a total assignment to the variables. The values of these variables
     # must be used to build a tree and implement the classifier.
-    '''
-    def var_and(a, b):
-        return a.GetVarValueMap()[1] == 1 and b.GetVarValueMap()[1] == 1
-
-
-    # Constraint 7: to discriminate a feature for value 0 at node j = 2,...,n
-    for r in range(1, k + 1):
-        model.Add(var['d0%i,%i' % (r, 1)] == 0)
-
-        for j in range(2, n + 1):
-            or_sum = 0
-            for i in range(floor(j / 2), j):
-                if i >= 1 and j in getLR(i) or j in getRR(i):
-                    #print(var['p%i,%i' % (j, i)], var['d0%i,%i' % (r, i)])
-                    if var_and(var['p%i,%i' % (j, i)], var['d0%i,%i' % (r, i)]):
-                        or_sum += 1
-                    else:
-                        if 'r%i,%i' % (i, j) in var:
-                            #print(var['a%i,%i' % (r, i)], var['r%i,%i' % (i, j)])
-                            if var_and(var['a%i,%i' % (r, i)], var['r%i,%i' % (i, j)]):
-                                or_sum += 1
-            model.Add(or_sum >= 1).OnlyEnforceIf(var['d0%i,%i' % (r, j)])
-            # model.Add(var['d0%i,%i' % (r, j)] == 1).OnlyEnforceIf(or_sum >= 1)
-            model.AddImplication(or_sum >= 1, var['d0%i,%i' % (r, j)])
-
-    # Constraint 8: to discriminate a feature for value 1 at node j = 2,...,n
-    for r in range(1, k + 1):
-        model.Add(var['d1%i,%i' % (r, 1)] == 0)
-
-        for j in range(2, n + 1):
-            or_sum = 0
-            for i in range(floor(j / 2), j):
-                if i >= 1 and j in getLR(i) or j in getRR(i):
-                    if var_and(var['p%i,%i' % (j, i)], var['d1%i,%i' % (r, i)]):
-                        or_sum += 1
-                    else:
-                        if 'l%i,%i' % (i, j) in var:
-                            if var_and(var['a%i,%i' % (r, i)], var['l%i,%i' % (i, j)]):
-                                or_sum += 1
-            model.Add(or_sum >= 1).OnlyEnforceIf(var['d1%i,%i' % (r, j)])
-            # model.Add(var['d0%i,%i' % (r, j)] == 1).OnlyEnforceIf(or_sum >= 1)
-            model.AddImplication(or_sum >= 1, var['d1%i,%i' % (r, j)])
-    '''
 
     # Constraint 7: to discriminate a feature for value 0 at node j = 2,...,n
     # d0r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
@@ -247,14 +204,18 @@ def set_csp(pos_x, neg_x, n, k):
                     var['__p%i,%i_AND_d0%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d0%i,%i' % (j, i, r, i))
                     var['__a%i,%i_AND_r%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_r%i,%i' % (r, i, i, j))
 
+                    # __p%i,%i_AND_d0%i,%i -> p%i,%i AND d0%i,%i
                     model.Add(var['p%i,%i' % (j, i)] + var['d0%i,%i' % (r, i)] == 2).OnlyEnforceIf(
                         var['__p%i,%i_AND_d0%i,%i' % (j, i, r, i)])
+
+                    # __a%i,%i_AND_r%i,%i -> a%i,%i AND r%i,%i
                     model.Add(var['a%i,%i' % (r, i)] + var['r%i,%i' % (i, j)] == 2).OnlyEnforceIf(
                         var['__a%i,%i_AND_r%i,%i' % (r, i, i, j)])
 
                     var['__p%i,%i_AND_d0%i,%i_OR_a%i,%i_AND_r%i,%i' % (j, i, r, i, r, i, i, j)] = model.NewBoolVar(
                         '__p%i,%i_AND_d0%i,%i_OR_a%i,%i_AND_r%i,%i' % (j, i, r, i, r, i, i, j))
 
+                    # __p%i,%i_AND_d0%i,%i_OR_a%i,%i_AND_r%i,%i -> __p%i,%i_AND_d0%i,%i AND __a%i,%i_AND_r%i,%i
                     model.Add(var['__p%i,%i_AND_d0%i,%i' % (j, i, r, i)] + var[
                         '__a%i,%i_AND_r%i,%i' % (r, i, i, j)] >= 1).OnlyEnforceIf(
                         var['__p%i,%i_AND_d0%i,%i_OR_a%i,%i_AND_r%i,%i' % (j, i, r, i, r, i, i, j)])
@@ -265,8 +226,6 @@ def set_csp(pos_x, neg_x, n, k):
             model.AddBoolOr(or_list).OnlyEnforceIf(var['d0%i,%i' % (r, j)])
             # d0r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d0r,i) OR (ar,i AND ri,j)))
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d0%i,%i' % (r, j)])
-            # for exp in or_list:
-            #   model.AddImplication(exp, var['d0%i,%i' % (r, j)])
 
     # Constraint 8: to discriminate a feature for value 1 at node j = 2,...,n
     # d1r,j <-> (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
@@ -283,14 +242,18 @@ def set_csp(pos_x, neg_x, n, k):
                     var['__p%i,%i_AND_d1%i,%i' % (j, i, r, i)] = model.NewBoolVar('__p%i,%i_AND_d1%i,%i' % (j, i, r, i))
                     var['__a%i,%i_AND_l%i,%i' % (r, i, i, j)] = model.NewBoolVar('__a%i,%i_AND_l%i,%i' % (r, i, i, j))
 
+                    # __p%i,%i_AND_d1%i,%i -> p%i,%i AND d1%i,%i
                     model.Add(var['p%i,%i' % (j, i)] + var['d1%i,%i' % (r, i)] == 2).OnlyEnforceIf(
                         var['__p%i,%i_AND_d1%i,%i' % (j, i, r, i)])
+
+                    # __a%i,%i_AND_l%i,%i -> a%i,%i AND l%i,%i
                     model.Add(var['a%i,%i' % (r, i)] + var['l%i,%i' % (i, j)] == 2).OnlyEnforceIf(
                         var['__a%i,%i_AND_l%i,%i' % (r, i, i, j)])
 
                     var['__p%i,%i_AND_d1%i,%i_OR_a%i,%i_AND_l%i,%i' % (j, i, r, i, r, i, i, j)] = model.NewBoolVar(
                         '__p%i,%i_AND_d1%i,%i_OR_a%i,%i_AND_l%i,%i' % (j, i, r, i, r, i, i, j))
 
+                    # __p%i,%i_AND_d1%i,%i_OR_a%i,%i_AND_l%i,%i -> __p%i,%i_AND_d1%i,%i AND __a%i,%i_AND_l%i,%i
                     model.Add(var['__p%i,%i_AND_d1%i,%i' % (j, i, r, i)] + var[
                         '__a%i,%i_AND_l%i,%i' % (r, i, i, j)] >= 1).OnlyEnforceIf(
                         var['__p%i,%i_AND_d1%i,%i_OR_a%i,%i_AND_l%i,%i' % (j, i, r, i, r, i, i, j)])
@@ -301,28 +264,6 @@ def set_csp(pos_x, neg_x, n, k):
             model.AddBoolOr(or_list).OnlyEnforceIf(var['d1%i,%i' % (r, j)])
             # d1r,j <- (OR for i=floor(j/2), j-1 of ((pj,i AND d1r,i) OR (ar,i AND li,j)))
             model.AddImplication(sum(_.GetVarValueMap()[1] for _ in or_list) >= 1, var['d1%i,%i' % (r, j)])
-            # for exp in or_list:
-            #   model.AddImplication(exp, var['d1%i,%i' % (r, j)])
-
-    '''
-    # Constraint 9: using a feature r at node j, r = 1,...,k, j = 1,...,n
-    for r in range(1, k + 1):
-        for j in range(1, n + 1):
-            or_sum = 0
-            #or_exp = 0
-            for i in range(floor(j / 2), j):
-                if i >= 1 and j in getLR(i) or j in getRR(i):
-                    # ur,i ^ pj,i -> -ar,j
-                    model.Add(var['a%i,%i' % (r, j)] == 0).OnlyEnforceIf([var['u%i,%i' % (r, i)], var['p%i,%i' % (j, i)]])
-                    if var_and(var['u%i,%i' % (r, i)], var['p%i,%i' % (j, i)]):
-                        or_sum += 1
-                        #or_exp += or_sum
-            if var['a%i,%i' % (r, j)] == 1:
-                #or_exp += 1
-                or_sum += 1
-            model.Add(or_sum >= 1).OnlyEnforceIf(var['u%i,%i' % (r, j)])
-            model.AddImplication(or_sum >= 1, var['u%i,%i' % (r, j)])
-    '''
 
     # Constraint 9: using a feature r at node j, r = 1,...,k, j = 1,...,n
     # AND for i = floor(j/2), j-1 of (ur,i ^ pj,i -> -ar,j)
@@ -336,8 +277,12 @@ def set_csp(pos_x, neg_x, n, k):
                 if i >= 1:  # and j in getLR(i) or j in getRR(i):
                     # ur,i ^ pj,i -> -ar,j
                     var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)] = model.NewBoolVar('__u%i,%i_AND_p%i,%i' % (r, i, j, i))
+
+                    # __u%i,%i_AND_p%i,%i -> u%i,%i AND p%i,%i
                     model.Add(var['u%i,%i' % (r, i)] + var['p%i,%i' % (j, i)] == 2).OnlyEnforceIf(
                         var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)])
+
+                    # __u%i,%i_AND_p%i,%i -> NOT(a%i,%i)
                     model.AddImplication(var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)], var['a%i,%i' % (r, j)].Not())
 
                     or_list.append(var['__u%i,%i_AND_p%i,%i' % (r, i, j, i)])
@@ -405,6 +350,74 @@ def set_csp(pos_x, neg_x, n, k):
     # ci -> vi, i=1,..,n
     for i in range(1, n + 1):
         model.AddImplication(var['c%i' % i], var['v%i' % i])
+    '''
+    # Additional constraint 1
+    for i in range(1, n + 1):
+        var['_lambda%i,%i' % (0, i)] = model.NewBoolVar('_lambda%i,%i' % (0, i))
+        model.Add(var['_lambda%i,%i' % (0, i)] == 1)
+
+        var['_tau%i,%i' % (0, i)] = model.NewBoolVar('_tau%i,%i' % (0, i))
+        model.Add(var['_tau%i,%i' % (0, i)] == 1)
+
+        for t in range(0, n + 1):
+            var['_lambda%i,%i' % (t, i)] = model.NewBoolVar('_lambda%i,%i' % (t, i))
+            var['_tau%i,%i' % (t, i)] = model.NewBoolVar('_tau%i,%i' % (t, i))
+
+    for i in range(1, n + 1):
+        for t in range(1, floor(i / 2) + 1):
+            if i > 1:
+                var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)] = model.NewBoolVar(
+                    '__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i))
+
+                model.Add(var['_lambda%i,%i' % (t - 1, i - 1)] + var['v%i' % i] == 2).OnlyEnforceIf(
+                    var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)])
+
+                model.AddBoolOr([var['_lambda%i,%i' % (t, i - 1)],
+                                 var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)]]).OnlyEnforceIf(
+                    var['_lambda%i,%i' % (t, i)])
+
+                model.AddImplication(var['_lambda%i,%i' % (t, i - 1)], var['_lambda%i,%i' % (t, i)])
+                model.AddImplication(var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)], var['_lambda%i,%i' % (t, i)])
+
+                # avoid duplicates
+                #model.Add(var['_lambda%i,%i' % (t - 1, i - 1)] + var['v%i' % i] != 2).OnlyEnforceIf(
+                #    var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)])
+                #model.AddBoolOr([var['_lambda%i,%i' % (t - 1, i - 1)].Not(), var['v%i' % i].Not(),
+                #                 var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)]])
+
+        for t in range(1, i + 1):
+            if i > 1:
+                var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)] = model.NewBoolVar(
+                    '__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i))
+
+                model.Add(var['_tau%i,%i' % (t - 1, i - 1)] + var['v%i' % i].Not() == 2).OnlyEnforceIf(
+                    var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)])
+
+                model.AddBoolOr([var['_tau%i,%i' % (t, i - 1)],
+                                 var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)]]).OnlyEnforceIf(
+                    var['_tau%i,%i' % (t, i)])
+
+                model.AddImplication(var['_tau%i,%i' % (t, i - 1)], var['_tau%i,%i' % (t, i)])
+                model.AddImplication(var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)], var['_tau%i,%i' % (t, i)])
+
+                # avoid duplicates
+                #model.Add(var['_tau%i,%i' % (t - 1, i - 1)] + var['v%i' % i].Not() != 2).OnlyEnforceIf(
+                #    var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)])
+                #model.AddBoolOr([var['_tau%i,%i' % (t - 1, i - 1)].Not(), var['v%i' % i],
+                #                 var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)]])
+
+    # Additional constraint 2
+    for i in range(1, n + 1):
+        for t in range(1, floor(i / 2) + 1):
+            if 'l%i,%i' % (i, 2 * (i - t + 1)) in var and 'r%i,%i' % (i, 2 * (i - t + 1) + 1) in var:
+                model.Add(var['l%i,%i' % (i, 2 * (i - t + 1))] == 0).OnlyEnforceIf(var['_lambda%i,%i' % (t, i)])
+                model.Add(var['r%i,%i' % (i, 2 * (i - t + 1) + 1)] == 0).OnlyEnforceIf(var['_lambda%i,%i' % (t, i)])
+
+        for t in range(ceil(i / 2), i + 1):
+            if 'l%i,%i' % (i, 2 * (t - 1)) in var and 'r%i,%i' % (i, 2 * (t - 1)) in var:
+                model.Add(var['l%i,%i' % (i, 2 * (t - 1))] == 0).OnlyEnforceIf(var['_tau%i,%i' % (t, i)])
+                model.Add(var['r%i,%i' % (i, 2 * (t - 1))] == 0).OnlyEnforceIf(var['_tau%i,%i' % (t, i)])
+    '''
 
 
 # To print all solutions
@@ -460,10 +473,6 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
         r_var = {}
         a_var = {}
         c_var = {}
-        # p_var = {}
-        # u_var = {}
-        # d0_var = {}
-        # d1_var = {}
 
         for v in self.__variables:
             try:
@@ -483,24 +492,7 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
                     a_var[node] = feature
                 elif str(v).startswith('c') and self.Value(v) == 1:
                     c_var[int(str(v)[1:])] = self.Value(v)
-                    '''
-                elif str(v).startswith('p') and self.Value(v) == 1:
-                    child = int(str(v)[1:].partition(',')[0])
-                    parent = int(str(v)[1:].partition(',')[2])
-                    p_var[child] = parent
-                elif str(v).startswith('u') and self.Value(v) == 1:
-                    feature = int(str(v)[1:].partition(',')[0])
-                    node = int(str(v)[1:].partition(',')[2])
-                    u_var[node] = feature
-                elif str(v).startswith('d0') and self.Value(v) == 1:
-                    feature = int(str(v)[2:].partition(',')[0])
-                    node = int(str(v)[2:].partition(',')[2])
-                    d0_var[node] = feature
-                elif str(v).startswith('d1') and self.Value(v) == 1:
-                    feature = int(str(v)[2:].partition(',')[0])
-                    node = int(str(v)[2:].partition(',')[2])
-                    d1_var[node] = feature
-                    '''
+
             except Exception as e:
                 traceback.print_exc()
                 raise e
@@ -516,19 +508,11 @@ class VarArraySolutionCollector(cp_model.CpSolverSolutionCallback):
             self.StopSearch()
 
 
-def get_solutions(x_values, y_values, target_nodes):
+def get_solutions(x_values, y_values, target_nodes, time_limit=1000):
     """ Returns all the possible solutions, or an empty tuple if no solution is found."""
 
     n = target_nodes  # number of nodes
-    '''
-    # boolean mask to select only the rows where the target feature equals 1
-    mask = data[:, -1] == 1
-    pos_x = data[mask, :-1]  # input features for the positive examples
 
-    # boolean mask to select only the rows where the target feature equals 0
-    mask = data[:, -1] == 0
-    neg_x = data[mask, :-1]  # input features for the negative examples
-    '''
     # select only the rows where the target feature equals 1
     pos_x = x_values[y_values.astype(np.bool), :]
 
@@ -542,27 +526,49 @@ def get_solutions(x_values, y_values, target_nodes):
     # Create a solver and solve the model.
     solver = cp_model.CpSolver()
 
-    solution_collector = VarArraySolutionCollector(var.values())
-    solver.SearchForAllSolutions(model, solution_collector)
-    # status = solver.StatusName(status_code)
-    # solver.SolveWithSolutionCallback(model, solution_collector)
+    solver.parameters.num_search_workers = 8
 
-    #solution_collector = VarArraySolutionPrinter(var.values())
-    #status = solver.SearchForAllSolutions(model, solution_collector)
-    #print('Status = %s' % solver.StatusName(status))
-    #print('Number of solutions found: %i' % solution_collector.solution_count())
+    # print log during search, useful for debug
+    # solver.parameters.log_search_progress = True
 
-    return tuple(solution_collector.solution_list)
+    global model
+    solver.parameters.max_time_in_seconds = time_limit
+    status = solver.Solve(model)
 
+    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:
 
-'''
-data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
-X = data[:, :-1]
-y = data[:, -1]
+        global var
 
-sol = get_solutions(X, y, 9)
+        v_var = {}
+        l_var = {}
+        r_var = {}
+        a_var = {}
+        c_var = {}
 
-for item in sol:
-    print(item)
-print(len(sol))
-'''
+        for k, v in var.items():
+            try:
+                if k.startswith('v'):
+                    v_var[int(k[1:])] = solver.Value(v)
+                elif k.startswith('l') and solver.Value(v) == 1:
+                    parent = k[1:].partition(',')[0]
+                    child = k[1:].partition(',')[2]
+                    l_var[int(parent)] = int(child)
+                elif k.startswith('r') and solver.Value(v) == 1:
+                    parent = k[1:].partition(',')[0]
+                    child = k[1:].partition(',')[2]
+                    r_var[int(parent)] = int(child)
+                elif k.startswith('a') and solver.Value(v) == 1:
+                    feature = k[1:].partition(',')[0]
+                    node = k[1:].partition(',')[2]
+                    a_var[int(node)] = int(feature)
+                elif k.startswith('c') and solver.Value(v) == 1:
+                    c_var[int(k[1:])] = solver.Value(v)
+
+            except Exception as e:
+                traceback.print_exc()
+                raise e
+
+        solution = {'v': v_var, 'l': l_var, 'r': r_var, 'a': a_var, 'c': c_var}
+
+        return [solution]
+    return []
