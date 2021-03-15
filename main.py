@@ -1,6 +1,5 @@
-import pandas as pd
 import numpy as np
-from preprocess import make_boolean_dataset
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score, average_precision_score, f1_score, \
     accuracy_score, matthews_corrcoef
@@ -9,7 +8,20 @@ from decisiontree import DecisionTree
 import time
 
 
+class ResultSet:
+    def __init__(self):
+        self.nodes = 0
+        self.time = 0
+        self.precision = 0
+        self.recall = 0
+        self.avg_precision = 0
+        self.f1 = 0
+        self.accuracy = 0
+        self.matthews = 0
+
+
 def get_mean_scores(res_list):
+    """ Returns a ResultSet object with the mean values of the metrics."""
 
     num = len(res_list)
     if num == 0:
@@ -39,43 +51,20 @@ def get_mean_scores(res_list):
     return r
 
 
-# load 'car' dataset
-data = pd.read_csv('datasets/car.data', delimiter=',', header=None)
-# sample_data = df.sample(n=35, random_state=42)
-# test_data = pd.concat([data, df]).drop_duplicates(keep=False)
-# select only examples with two class values
-# classes = ['unacc', 'acc']
-# data = data[data[6].isin(classes)]
+dt = DecisionTree()
+scikit_dt = tree.DecisionTreeClassifier()
 
-# boolean class values
-y_data = data[6]
-y_data.replace(to_replace=dict(unacc=0, acc=1, good=1, vgood=1), inplace=True)
-y = y_data.to_numpy(dtype=np.int8)
+# read a dataset
+data = pd.read_csv('datasets/binary/bin-car.csv', delimiter=',', header=None)
 
-# boolean features' values
-X_data = data.drop(6, axis=1)
-X = make_boolean_dataset(X_data)
+X = data.iloc[:, :-1].to_numpy(dtype=np.int8)
+y = data.iloc[:, -1].to_numpy(dtype=np.int8)
+
 
 dt_results_list = []
 scikit_results_list = []
 
-
-class ResultSet:
-    def __init__(self):
-        self.nodes = 0
-        self.time = 0
-        self.precision = 0
-        self.recall = 0
-        self.avg_precision = 0
-        self.f1 = 0
-        self.accuracy = 0
-        self.matthews = 0
-
-
-dt = DecisionTree()
-scikit_dt = tree.DecisionTreeClassifier()
-
-for s in range(1, 21):
+for s in range(1, 2):
     # split dataset in training and test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1708, random_state=s)
 

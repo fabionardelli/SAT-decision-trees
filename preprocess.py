@@ -1,35 +1,54 @@
 import numpy as np
+import pandas as pd
+from utils import one_hot_encode
 
+# preprocess 'weather' dataset
+# load 'mouse' dataset
+data = pd.read_csv('datasets/meteo.lrg', sep='\s+', header=None)
 
-def make_boolean_dataset(data):
-    """
-        Converts a dataset of discrete features into a dataset of boolean features
-        using One-Hot Encoding. Returns the boolean dataset.
-    """
+# boolean class values
+y_data = data[4]
+y_data.replace(to_replace={'-': '0', '+': '1'}, value=None, inplace=True)
+y = y_data.to_numpy(dtype=np.int8)
 
-    feature_domains = []  # to store features domains
-    boolean_col_number = 0  # num. of columns of the new dataset
+# boolean features' values
+X_data = data.drop(4, axis=1)
+X = one_hot_encode(X_data)
 
-    new_col = 0  # col index of current feature value in 'boolean_data'
-    for col, feature in data.iteritems():
-        current_feature_domain = {}
+binary_data = np.append(X, y[:, None], axis=1)
 
-        # store each feature's value in a dictionary of
-        # pairs (value, new_col)
-        for value in feature.values:
-            if value not in current_feature_domain:
-                current_feature_domain[value] = new_col
-                new_col += 1
+np.savetxt('datasets/binary/bin-weather.csv', binary_data, fmt='%d', delimiter=',')
 
-        feature_domains.append(current_feature_domain)
-        boolean_col_number += len(current_feature_domain)
+# preprocess 'mouse' dataset
+# load 'mouse' dataset
+data = pd.read_csv('datasets/mouse', delimiter=',', header=None)
 
-    # this array will contain the boolean dataset
-    boolean_data = np.zeros(shape=(data.shape[0], boolean_col_number), dtype=np.int8)
+# boolean class values
+y_data = data[5]
+y_data.replace(to_replace=dict(mouse=0, elephant=1), inplace=True)
+y = y_data.to_numpy(dtype=np.int8)
 
-    # populate the boolean dataset
-    for col, feature in data.iteritems():
-        for row, value in enumerate(feature):
-            boolean_data[row, feature_domains[col][value]] = 1
+# boolean features' values
+X_data = data.drop(5, axis=1)
+X = one_hot_encode(X_data)
 
-    return boolean_data
+binary_data = np.append(X, y[:, None], axis=1)
+
+np.savetxt('datasets/binary/bin-mouse.csv', binary_data, fmt='%d', delimiter=',')
+
+# preprocess 'car' dataset
+# load 'car' dataset
+data = pd.read_csv('datasets/car.data', delimiter=',', header=None)
+
+# boolean class values
+y_data = data[6]
+y_data.replace(to_replace=dict(unacc=0, acc=1, good=1, vgood=1), inplace=True)
+y = y_data.to_numpy(dtype=np.int8)
+
+# boolean features' values
+X_data = data.drop(6, axis=1)
+X = one_hot_encode(X_data)
+
+binary_data = np.append(X, y[:, None], axis=1)
+
+np.savetxt('datasets/binary/bin-car.csv', binary_data, fmt='%d', delimiter=',')

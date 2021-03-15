@@ -1,7 +1,6 @@
 from core import get_solutions
 from dataclasses import dataclass
 import traceback
-import pydot
 
 
 @dataclass
@@ -152,42 +151,3 @@ class DecisionTree:
                 current_node = next_node
 
         return current_node.y
-
-    def draw_tree(self, file_name):
-        """
-        Draws the tree as .png image, using pydot.
-        :return:
-        """
-        g = pydot.Dot('tree', graph_type='digraph')
-
-        visited = set()  # already visited nodes
-
-        # Scan each node in the tree
-        for node in self.tree_structure:
-            # If the node is not a leaf and has not been visited yet...
-            if self.tree_structure[node] is not None and node not in visited:
-                # add it to the pydot graph...
-                g.add_node(pydot.Node('%s' % node, shape='circle'))
-                # and to the visited set
-                visited.add(node)
-
-                # get its left and right children...
-                left_child = self.tree_structure[node][0]
-                right_child = self.tree_structure[node][1]
-
-                # and add them to the pydot graph
-
-                # leaf nodes are drawn as squares, non-leaf nodes as circles
-                node_shape = 'square' if self.nodes[left_child].leaf else 'circle'
-                g.add_node(pydot.Node('%s' % left_child, shape=node_shape))
-
-                node_shape = 'square' if self.nodes[right_child].leaf else 'circle'
-                g.add_node(pydot.Node('%s' % right_child, shape=node_shape))
-
-                # Then add edges connecting the parent node to its children
-                # Left edges are labelled with '0', right edges with '1'
-                g.add_edge(pydot.Edge(node, left_child, color='black', label='0'))
-                g.add_edge(pydot.Edge(node, right_child, color='black', label='1'))
-
-        # Save the pydot graph as a .png image
-        g.write_png(file_name)
