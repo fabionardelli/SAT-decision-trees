@@ -145,7 +145,18 @@ Avg. Precision:     0.56           0.54
       Accuracy:     0.80           0.78
            MCC:     0.54           0.51
 
-With my additional constraint (4ter)
+With 4bis
+                      dt     sklearn dt
+         Nodes:     13.4           10.2
+          Time:     2.19           0.00
+     Precision:     0.61           0.61
+        Recall:     0.68           0.67
+Avg. Precision:     0.53           0.52
+            F1:     0.63           0.63
+      Accuracy:     0.77           0.77
+           MCC:     0.48           0.47
+
+With 4ter
                       dt     sklearn dt
          Nodes:     13.4           10.1
           Time:     1.11           0.00
@@ -156,7 +167,18 @@ Avg. Precision:     0.56           0.53
       Accuracy:     0.79           0.77
            MCC:     0.53           0.48
 
-With my additional constraint (13bis)
+With 4bis and 4ter
+                      dt     sklearn dt
+         Nodes:     13.4           10.2
+          Time:     1.07           0.00
+     Precision:     0.66           0.62
+        Recall:     0.71           0.67
+Avg. Precision:     0.56           0.53
+            F1:     0.67           0.63
+      Accuracy:     0.80           0.77
+           MCC:     0.54           0.48
+
+With 13bis
                       dt     sklearn dt
          Nodes:     13.4           10.1
           Time:     2.72           0.00
@@ -177,6 +199,17 @@ Avg. Precision:     0.54           0.53
             F1:     0.65           0.62
       Accuracy:     0.78           0.77
            MCC:     0.51           0.48
+
+With 4bis, 4ter and 13bis
+                      dt     sklearn dt
+         Nodes:     13.4           10.2
+          Time:     1.09           0.00
+     Precision:     0.64           0.62
+        Recall:     0.71           0.66
+Avg. Precision:     0.55           0.53
+            F1:     0.66           0.62
+      Accuracy:     0.79           0.77
+           MCC:     0.52           0.48
 
 With original additional constraints
                      dt     sklearn dt
@@ -221,4 +254,15 @@ Avg. Precision:     0.56           0.53
             F1:     0.67           0.63
       Accuracy:     0.79           0.77
            MCC:     0.53           0.48
+           
+With all constraints
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.13           0.00
+     Precision:     0.64           0.63
+        Recall:     0.71           0.69
+Avg. Precision:     0.55           0.54
+            F1:     0.66           0.64
+      Accuracy:     0.79           0.78
+           MCC:     0.52           0.50
 '''
