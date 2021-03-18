@@ -105,8 +105,6 @@ def set_csp(pos_x, neg_x, n, k):
     global ctx
     ctx = Context(cfg)
 
-    # enable multithreading
-
     # TREE BUILDING CONSTRAINTS
     # These constraints allow to represent a full binary tree, that is a tree
     # in which each node has exactly 0 or 2 children. Since the tree cannot be
