@@ -1,4 +1,4 @@
-from core import get_solutions
+from core import get_solution
 from dataclasses import dataclass
 import traceback
 
@@ -52,14 +52,12 @@ class DecisionTree:
         """
 
         # solve the CSP
-        solutions = get_solutions(x_train, y_train, n)
+        solution = get_solution(x_train, y_train, n)
 
-        if len(solutions) == 0:
+        if solution is None:
             return -1  # Training failed
 
         self.trained = True
-
-        solution = solutions[0]  # choose the first solution found
 
         # build the decision tree
         try:
@@ -120,6 +118,7 @@ class DecisionTree:
         while flag and status != -1 and n > 3:
             n -= 2
             status = self.fit(x_train, y_train, n)
+
             if status == -1:
                 # the minimum number of nodes eligible is n + 2
                 n += 2

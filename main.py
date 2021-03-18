@@ -56,7 +56,7 @@ scikit_dt = tree.DecisionTreeClassifier()
 
 # read a dataset
 data = pd.read_csv('datasets/binary/bin-car.csv', delimiter=',', header=None)
-
+#data = pd.read_csv('data.csv', delimiter=',', header=None, skiprows=1)
 X = data.iloc[:, :-1].to_numpy(dtype=np.int8)
 y = data.iloc[:, -1].to_numpy(dtype=np.int8)
 
@@ -64,13 +64,17 @@ y = data.iloc[:, -1].to_numpy(dtype=np.int8)
 dt_results_list = []
 scikit_results_list = []
 
-for s in range(1, 2):
+for s in range(1, 21):
     # split dataset in training and test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1708, random_state=s)
 
     start = time.time()
     n = dt.fit_optimal(X_train, y_train)
+    #n = dt.fit(X_train, y_train, 5)
     end = time.time()
+
+    #X_test = X_train
+    #y_test = y_train
 
     dt_result = ResultSet()
 
@@ -126,3 +130,95 @@ print('Avg. Precision:     {0:.2f}           {1:.2f}'.format(dt_test_res.avg_pre
 print('            F1:     {0:.2f}           {1:.2f}'.format(dt_test_res.f1, scikit_test_res.f1))
 print('      Accuracy:     {0:.2f}           {1:.2f}'.format(dt_test_res.accuracy, scikit_test_res.accuracy))
 print('           MCC:     {0:.2f}           {1:.2f}'.format(dt_test_res.matthews, scikit_test_res.matthews))
+
+'''
+Results with 20 runs with a sample of 20 examples from the car dataset
+
+Without additional constraints
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     2.42           0.00
+     Precision:     0.66           0.63
+        Recall:     0.71           0.71
+Avg. Precision:     0.56           0.54
+            F1:     0.66           0.65
+      Accuracy:     0.80           0.78
+           MCC:     0.54           0.51
+
+With my additional constraint (4ter)
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.11           0.00
+     Precision:     0.64           0.62
+        Recall:     0.73           0.66
+Avg. Precision:     0.56           0.53
+            F1:     0.67           0.62
+      Accuracy:     0.79           0.77
+           MCC:     0.53           0.48
+
+With my additional constraint (13bis)
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     2.72           0.00
+     Precision:     0.64           0.63
+        Recall:     0.69           0.71
+Avg. Precision:     0.54           0.55
+            F1:     0.65           0.65
+      Accuracy:     0.79           0.78
+           MCC:     0.51           0.51
+
+With constraints 4ter and 13bis
+                      dt     sklearn dt
+         Nodes:     13.4           10.2
+          Time:     1.09           0.00
+     Precision:     0.63           0.62
+        Recall:     0.70           0.65
+Avg. Precision:     0.54           0.53
+            F1:     0.65           0.62
+      Accuracy:     0.78           0.77
+           MCC:     0.51           0.48
+
+With original additional constraints
+                     dt     sklearn dt
+         Nodes:     13.4           10.2
+          Time:     1.19           0.00
+     Precision:     0.62           0.60
+        Recall:     0.69           0.68
+Avg. Precision:     0.53           0.52
+            F1:     0.64           0.63
+      Accuracy:     0.77           0.76
+           MCC:     0.49           0.47
+           
+With 4ter and original additional constraints
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.28           0.00
+     Precision:     0.66           0.62
+        Recall:     0.71           0.67
+Avg. Precision:     0.57           0.53
+            F1:     0.67           0.63
+      Accuracy:     0.81           0.77
+           MCC:     0.55           0.48
+           
+With 13bis and original additional constraints
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.20           0.00
+     Precision:     0.64           0.64
+        Recall:     0.70           0.69
+Avg. Precision:     0.54           0.54
+            F1:     0.65           0.65
+      Accuracy:     0.78           0.78
+           MCC:     0.51           0.51
+           
+with 4ter, 13bis and original additional constraints
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.18           0.00
+     Precision:     0.64           0.62
+        Recall:     0.72           0.68
+Avg. Precision:     0.56           0.53
+            F1:     0.67           0.63
+      Accuracy:     0.79           0.77
+           MCC:     0.53           0.48
+'''
