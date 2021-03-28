@@ -134,6 +134,20 @@ print('           MCC:     {0:.2f}           {1:.2f}'.format(dt_test_res.matthew
 '''
 Results with 20 runs with a sample of 20 examples from the car dataset
 
+
+Comparison of classifier performance with sklearn DecisionTreeClassifier
+(all constraints active)
+                      dt     sklearn dt
+         Nodes:     13.4           10.1
+          Time:     1.05           0.00
+     Precision:     0.66           0.62
+        Recall:     0.71           0.67
+Avg. Precision:     0.57           0.53
+            F1:     0.67           0.63
+      Accuracy:     0.81           0.77
+           MCC:     0.55           0.48
+
+
 Comparison of execution times with different implementations
 and no additional constraints
                       
