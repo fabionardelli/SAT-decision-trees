@@ -1,4 +1,4 @@
-from core import get_solution
+from core.core_yices import get_solution
 from dataclasses import dataclass
 import traceback
 

@@ -134,135 +134,44 @@ print('           MCC:     {0:.2f}           {1:.2f}'.format(dt_test_res.matthew
 '''
 Results with 20 runs with a sample of 20 examples from the car dataset
 
-Without additional constraints
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     2.42           0.00
-     Precision:     0.66           0.63
-        Recall:     0.71           0.71
-Avg. Precision:     0.56           0.54
-            F1:     0.66           0.65
-      Accuracy:     0.80           0.78
-           MCC:     0.54           0.51
-
+Comparison of execution times with different implementations
+and no additional constraints
+                      
+yices    ortools  z3
+2.42     4.95     11.72    
+    
+    
+Execution time with additional constraints (yices implementation)
 With 4bis
-                      dt     sklearn dt
-         Nodes:     13.4           10.2
-          Time:     2.19           0.00
-     Precision:     0.61           0.61
-        Recall:     0.68           0.67
-Avg. Precision:     0.53           0.52
-            F1:     0.63           0.63
-      Accuracy:     0.77           0.77
-           MCC:     0.48           0.47
+2.19  
 
 With 4ter
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.11           0.00
-     Precision:     0.64           0.62
-        Recall:     0.73           0.66
-Avg. Precision:     0.56           0.53
-            F1:     0.67           0.62
-      Accuracy:     0.79           0.77
-           MCC:     0.53           0.48
+1.11
 
 With 4bis and 4ter
-                      dt     sklearn dt
-         Nodes:     13.4           10.2
-          Time:     1.07           0.00
-     Precision:     0.66           0.62
-        Recall:     0.71           0.67
-Avg. Precision:     0.56           0.53
-            F1:     0.67           0.63
-      Accuracy:     0.80           0.77
-           MCC:     0.54           0.48
+1.07
 
 With 13bis
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     2.72           0.00
-     Precision:     0.64           0.63
-        Recall:     0.69           0.71
-Avg. Precision:     0.54           0.55
-            F1:     0.65           0.65
-      Accuracy:     0.79           0.78
-           MCC:     0.51           0.51
+2.72
 
-With constraints 4ter and 13bis
-                      dt     sklearn dt
-         Nodes:     13.4           10.2
-          Time:     1.09           0.00
-     Precision:     0.63           0.62
-        Recall:     0.70           0.65
-Avg. Precision:     0.54           0.53
-            F1:     0.65           0.62
-      Accuracy:     0.78           0.77
-           MCC:     0.51           0.48
+With 4ter and 13bis
+1.09
 
 With 4bis, 4ter and 13bis
-                      dt     sklearn dt
-         Nodes:     13.4           10.2
-          Time:     1.09           0.00
-     Precision:     0.64           0.62
-        Recall:     0.71           0.66
-Avg. Precision:     0.55           0.53
-            F1:     0.66           0.62
-      Accuracy:     0.79           0.77
-           MCC:     0.52           0.48
+1.09
 
 With original additional constraints
-                     dt     sklearn dt
-         Nodes:     13.4           10.2
-          Time:     1.19           0.00
-     Precision:     0.62           0.60
-        Recall:     0.69           0.68
-Avg. Precision:     0.53           0.52
-            F1:     0.64           0.63
-      Accuracy:     0.77           0.76
-           MCC:     0.49           0.47
+1.19
            
 With 4ter and original additional constraints
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.28           0.00
-     Precision:     0.66           0.62
-        Recall:     0.71           0.67
-Avg. Precision:     0.57           0.53
-            F1:     0.67           0.63
-      Accuracy:     0.81           0.77
-           MCC:     0.55           0.48
+1.28
            
 With 13bis and original additional constraints
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.20           0.00
-     Precision:     0.64           0.64
-        Recall:     0.70           0.69
-Avg. Precision:     0.54           0.54
-            F1:     0.65           0.65
-      Accuracy:     0.78           0.78
-           MCC:     0.51           0.51
+1.20
            
 with 4ter, 13bis and original additional constraints
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.18           0.00
-     Precision:     0.64           0.62
-        Recall:     0.72           0.68
-Avg. Precision:     0.56           0.53
-            F1:     0.67           0.63
-      Accuracy:     0.79           0.77
-           MCC:     0.53           0.48
+1.18
            
 With all constraints
-                      dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.05           0.00
-     Precision:     0.65           0.62
-        Recall:     0.73           0.70
-Avg. Precision:     0.56           0.54
-            F1:     0.67           0.64
-      Accuracy:     0.79           0.78
-           MCC:     0.54           0.50
+1.05
 '''

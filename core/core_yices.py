@@ -1,6 +1,6 @@
 # This software implements a method for learning a decision tree as a SAT problem,
 # as shown in the paper "Learning Optimal Decision Trees with SAT" by Nina Narodytska et al., 2018
-# All credit for the encoding proposed here must be given to the authors of the paper.
+# All credit for the encoding proposed here must be given to them.
 # Author: Fabio Nardelli
 
 import numpy as np
@@ -409,7 +409,7 @@ def set_csp(pos_x, neg_x, n, k):
     # '''
 
 
-def get_solution(x_values, y_values, target_nodes, time_limit=1000):
+def get_solution(x_values, y_values, target_nodes):
     """ Returns all the possible solutions, or an empty tuple if no solution is found."""
 
     n = target_nodes  # number of nodes
@@ -426,6 +426,8 @@ def get_solution(x_values, y_values, target_nodes, time_limit=1000):
 
     global ctx
     status = ctx.check_context()
+
+    solution = None
 
     if status == Status.SAT:
 
@@ -467,8 +469,7 @@ def get_solution(x_values, y_values, target_nodes, time_limit=1000):
         ctx.dispose()
         cfg.dispose()
 
-        return solution
-    return None
+    return solution
 
 
 '''
