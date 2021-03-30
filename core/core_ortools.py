@@ -380,12 +380,6 @@ def set_csp(pos_x, neg_x, n, k):
                 model.AddImplication(var['_lambda%i,%i' % (t, i - 1)], var['_lambda%i,%i' % (t, i)])
                 model.AddImplication(var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)], var['_lambda%i,%i' % (t, i)])
 
-                # avoid duplicates
-                #model.Add(var['_lambda%i,%i' % (t - 1, i - 1)] + var['v%i' % i] != 2).OnlyEnforceIf(
-                #    var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)])
-                #model.AddBoolOr([var['_lambda%i,%i' % (t - 1, i - 1)].Not(), var['v%i' % i].Not(),
-                #                 var['__lambda%i,%i_AND_v%i' % (t - 1, i - 1, i)]])
-
         for t in range(1, i + 1):
             if i > 1:
                 var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)] = model.NewBoolVar(
@@ -401,12 +395,6 @@ def set_csp(pos_x, neg_x, n, k):
                 model.AddImplication(var['_tau%i,%i' % (t, i - 1)], var['_tau%i,%i' % (t, i)])
                 model.AddImplication(var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)], var['_tau%i,%i' % (t, i)])
 
-                # avoid duplicates
-                #model.Add(var['_tau%i,%i' % (t - 1, i - 1)] + var['v%i' % i].Not() != 2).OnlyEnforceIf(
-                #    var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)])
-                #model.AddBoolOr([var['_tau%i,%i' % (t - 1, i - 1)].Not(), var['v%i' % i],
-                #                 var['__tau%i,%i_AND_NOT_v%i' % (t - 1, i - 1, i)]])
-
     # Additional constraint 2
     for i in range(1, n + 1):
         for t in range(1, floor(i / 2) + 1):
@@ -417,7 +405,7 @@ def set_csp(pos_x, neg_x, n, k):
         for t in range(ceil(i / 2), i + 1):
             if 'l%i,%i' % (i, 2 * (t - 1)) in var and 'r%i,%i' % (i, 2 * (t - 1)) in var:
                 model.Add(var['l%i,%i' % (i, 2 * (t - 1))] == 0).OnlyEnforceIf(var['_tau%i,%i' % (t, i)])
-                model.Add(var['r%i,%i' % (i, 2 * (t - 1))] == 0).OnlyEnforceIf(var['_tau%i,%i' % (t, i)])
+                model.Add(var['r%i,%i' % (i, 2 * t - 1)] == 0).OnlyEnforceIf(var['_tau%i,%i' % (t, i)])
     #'''
 
 

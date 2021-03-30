@@ -299,9 +299,9 @@ def set_csp(pos_x, neg_x, n, k):
 
     # Constraint 13-bis: only a leaf node can be associated to a class.
     # ci -> vi, i=1,..,n
-    #for i in range(1, n + 1):
-    #    s.add(Implies(var['c%i' % i], var['v%i' % i]))
-    '''
+    for i in range(1, n + 1):
+        s.add(Implies(var['c%i' % i], var['v%i' % i]))
+    #'''
     # Additional constraint 1
     for i in range(1, n + 1):
         for t in range(0, n + 1):
@@ -346,8 +346,8 @@ def set_csp(pos_x, neg_x, n, k):
         for t in range(ceil(i / 2), i + 1):
             if 'l%i,%i' % (i, 2 * (t - 1)) in var and 'r%i,%i' % (i, 2 * (t - 1)) in var:
                 s.add(Implies(var['_tau%i,%i' % (t, i)], And(Not(var['l%i,%i' % (i, 2 * (t - 1))]),
-                                                             Not(var['r%i,%i' % (i, 2 * (t - 1))]))))
-    '''
+                                                             Not(var['r%i,%i' % (i, 2 * t - 1)]))))
+    #'''
 
 
 def get_solution(x_values, y_values, target_nodes):

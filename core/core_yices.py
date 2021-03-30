@@ -150,7 +150,7 @@ def set_csp(pos_x, neg_x, n, k):
         exp = Terms.yand([exp1, exp2])  # exactly one TRUE
 
         ctx.assert_formula(Terms.implies(Terms.ynot(var['v%i' % i]), exp))
-    # '''
+    #'''
     # Constraint 4bis: each left/right child must have exactly a parent
     for j in range(2, n + 1):
         left_list = []
@@ -184,8 +184,8 @@ def set_csp(pos_x, neg_x, n, k):
             # at least one FALSE
             exp2 = Terms.yand(or_list)
             ctx.assert_formula(Terms.yand([exp1, exp2]))  # exactly one TRUE
-    # '''
-    # '''
+    #'''
+    #'''
     # Constraint 4ter: nodes on the same level must be labeled increasingly
     # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
     for i in range(n - 2, 0, -1):
@@ -208,7 +208,7 @@ def set_csp(pos_x, neg_x, n, k):
                 if len(node_list) > 0:
                     exp = Terms.yor(node_list)
                     ctx.assert_formula(Terms.implies(var['r%i,%i' % (i, j)], exp))
-    # '''
+    #'''
     # Constraint 5: if the i-th node is a parent then it must have a child
     # pj,i <-> li,j, j in LR(i)
     # pj,i <-> ri,j, j in RR(i)
@@ -362,7 +362,7 @@ def set_csp(pos_x, neg_x, n, k):
     for i in range(1, n + 1):
         ctx.assert_formula(Terms.implies(var['c%i' % i], var['v%i' % i]))
 
-    # '''
+    #'''
     # Additional constraint 1
     for i in range(1, n + 1):
         for t in range(0, n + 1):
@@ -405,8 +405,8 @@ def set_csp(pos_x, neg_x, n, k):
                 ctx.assert_formula(
                     Terms.implies(var['_tau%i,%i' % (t, i)],
                                   Terms.yand([Terms.ynot(var['l%i,%i' % (i, 2 * (t - 1))]),
-                                              Terms.ynot(var['r%i,%i' % (i, 2 * (t - 1))])])))
-    # '''
+                                              Terms.ynot(var['r%i,%i' % (i, 2 * t - 1)])])))
+    #'''
 
 
 def get_solution(x_values, y_values, target_nodes):

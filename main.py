@@ -73,6 +73,7 @@ for s in range(1, 21):
     #n = dt.fit(X_train, y_train, 5)
     end = time.time()
 
+    # for test purposes, to check correctness of classifier
     #X_test = X_train
     #y_test = y_train
 
@@ -101,8 +102,6 @@ for s in range(1, 21):
         end = time.time()
 
         scikit_result = ResultSet()
-
-        y_predicted = np.empty(shape=len(y_test), dtype=np.int8)
 
         # collect predictions for each example
         y_predicted = scikit_dt.predict(X_test)
@@ -152,39 +151,48 @@ Comparison of execution times with different implementations
 and no additional constraints
                       
 yices    ortools  z3
-2.42     4.95     11.72    
-    
+2.13     4.89     11.56    
+
     
 Execution time with additional constraints (yices implementation)
 With 4bis
-2.19  
+2.11  
 
 With 4ter
-1.11
+1.04
 
 With 4bis and 4ter
-1.07
+0.99
 
 With 13bis
-2.72
+2.14
+
+With 4bis and 13bis
+1.96
 
 With 4ter and 13bis
-1.09
+0.98
 
 With 4bis, 4ter and 13bis
-1.09
+1.03
 
 With original additional constraints
-1.19
+1.00
+      
+With 4bis and original additional constraints
+1.02
            
 With 4ter and original additional constraints
-1.28
+1.07
            
 With 13bis and original additional constraints
+1.02
+
+With 4bis, 13bis and original additional constraints
 1.20
            
 with 4ter, 13bis and original additional constraints
-1.18
+0.99
            
 With all constraints
 1.05
