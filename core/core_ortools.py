@@ -130,7 +130,7 @@ def set_csp(pos_x, neg_x, n, k):
             s += var['l%i,%i' % (i, j)]
         model.Add(s == 1).OnlyEnforceIf(var['v%i' % i].Not())
     #'''
-    # Constraint 4bis: each left/right child must have exactly a parent
+    # Constraint 4.1: each left/right child must have exactly a parent
     for j in range(2, n + 1):
         left_sum = 0
         right_sum = 0
@@ -145,7 +145,7 @@ def set_csp(pos_x, neg_x, n, k):
                 model.Add(right_sum <= 1)
     #'''
     #'''
-    # Constraint 4ter: nodes on the same level must be labeled increasingly
+    # Constraint 4.2: nodes on the same level must be labeled increasingly
     # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
     for i in range(n - 2, 0, -1):
         for j in reversed(get_lr(i)):
@@ -347,7 +347,7 @@ def set_csp(pos_x, neg_x, n, k):
                     or_list.append(var['d1%i,%i' % (r, j)])
             model.AddBoolOr(or_list).OnlyEnforceIf([var['v%i' % j], var['c%i' % j]])
 
-    # Constraint 13-bis: only a leaf node can be associated to a class.
+    # Constraint 13.1: only a leaf node can be associated to a class.
     # ci -> vi, i=1,..,n
     for i in range(1, n + 1):
         model.AddImplication(var['c%i' % i], var['v%i' % i])

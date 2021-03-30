@@ -155,43 +155,43 @@ yices    ortools  z3
 
     
 Execution time with additional constraints (yices implementation)
-With 4bis
+With 4.1
 2.11  
 
-With 4ter
+With 4.2
 1.04
 
-With 4bis and 4ter
+With 4.1 and 4.2
 0.99
 
-With 13bis
+With 13.1
 2.14
 
-With 4bis and 13bis
+With 4.1 and 13.1
 1.96
 
-With 4ter and 13bis
+With 4.2 and 13.1
 0.98
 
-With 4bis, 4ter and 13bis
+With 4.1, 4.2 and 13.1
 1.03
 
 With original additional constraints
 1.00
       
-With 4bis and original additional constraints
+With 4.1 and original additional constraints
 1.02
            
-With 4ter and original additional constraints
+With 4.2 and original additional constraints
 1.07
            
-With 13bis and original additional constraints
+With 13.1 and original additional constraints
 1.02
 
-With 4bis, 13bis and original additional constraints
+With 4.1, 13.1 and original additional constraints
 1.20
            
-with 4ter, 13bis and original additional constraints
+with 4.2, 13.1 and original additional constraints
 0.99
            
 With all constraints
