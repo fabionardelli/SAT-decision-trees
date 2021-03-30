@@ -150,8 +150,38 @@ def set_csp(pos_x, neg_x, n, k):
         exp = Terms.yand([exp1, exp2])  # exactly one TRUE
 
         ctx.assert_formula(Terms.implies(Terms.ynot(var['v%i' % i]), exp))
-    #'''
-    # Constraint 4.1: each left/right child must have exactly a parent
+
+    # Constraint 5: if the i-th node is a parent then it must have a child
+    # pj,i <-> li,j, j in LR(i)
+    # pj,i <-> ri,j, j in RR(i)
+    for i in range(1, n + 1):
+        for j in get_lr(i):
+            ctx.assert_formula(Terms.iff(var['p%i,%i' % (j, i)], var['l%i,%i' % (i, j)]))
+        for j in get_rr(i):
+            ctx.assert_formula(Terms.iff(var['p%i,%i' % (j, i)], var['r%i,%i' % (i, j)]))
+
+    # Constraint 6: all the nodes but the first must have a parent.
+    # (SUM for i=floor(j/2), min(j-1, N) of pj,i = 1), j =2,...,n
+    for j in range(2, n + 1):
+        sum_list = []
+        for i in range(floor(j / 2), min(j - 1, n) + 1):
+            sum_list.append(var['p%i,%i' % (j, i)])
+
+        exp1 = Terms.yor(sum_list)  # at least one TRUE
+
+        or_list = []
+        for pair in itertools.combinations(sum_list, 2):
+            # NOT li,j OR NOT lk,h for each pair
+            or_list.append(Terms.yor([Terms.ynot(pair[0]), Terms.ynot(pair[1])]))
+
+        # at least one FALSE
+        exp2 = Terms.yand(or_list)
+        exp = Terms.yand([exp1, exp2])  # exactly one TRUE
+
+        ctx.assert_formula(exp)
+
+    # '''
+    # Constraint 6.1: each left/right child must have exactly a parent
     for j in range(2, n + 1):
         left_list = []
         right_list = []
@@ -184,9 +214,9 @@ def set_csp(pos_x, neg_x, n, k):
             # at least one FALSE
             exp2 = Terms.yand(or_list)
             ctx.assert_formula(Terms.yand([exp1, exp2]))  # exactly one TRUE
-    #'''
-    #'''
-    # Constraint 4.2: nodes on the same level must be labeled increasingly
+    # '''
+    # '''
+    # Constraint 6.2: nodes on the same level must be labeled increasingly
     # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
     for i in range(n - 2, 0, -1):
         for j in reversed(get_lr(i)):
@@ -208,35 +238,7 @@ def set_csp(pos_x, neg_x, n, k):
                 if len(node_list) > 0:
                     exp = Terms.yor(node_list)
                     ctx.assert_formula(Terms.implies(var['r%i,%i' % (i, j)], exp))
-    #'''
-    # Constraint 5: if the i-th node is a parent then it must have a child
-    # pj,i <-> li,j, j in LR(i)
-    # pj,i <-> ri,j, j in RR(i)
-    for i in range(1, n + 1):
-        for j in get_lr(i):
-            ctx.assert_formula(Terms.iff(var['p%i,%i' % (j, i)], var['l%i,%i' % (i, j)]))
-        for j in get_rr(i):
-            ctx.assert_formula(Terms.iff(var['p%i,%i' % (j, i)], var['r%i,%i' % (i, j)]))
-
-    # Constraint 6: all the nodes but the first must have a parent.
-    # (SUM for i=floor(j/2), min(j-1, N) of pj,i = 1), j =2,...,n
-    for j in range(2, n + 1):
-        sum_list = []
-        for i in range(floor(j / 2), min(j - 1, n) + 1):
-            sum_list.append(var['p%i,%i' % (j, i)])
-
-        exp1 = Terms.yor(sum_list)  # at least one TRUE
-
-        or_list = []
-        for pair in itertools.combinations(sum_list, 2):
-            # NOT li,j OR NOT lk,h for each pair
-            or_list.append(Terms.yor([Terms.ynot(pair[0]), Terms.ynot(pair[1])]))
-
-        # at least one FALSE
-        exp2 = Terms.yand(or_list)
-        exp = Terms.yand([exp1, exp2])  # exactly one TRUE
-
-        ctx.assert_formula(exp)
+    # '''
 
     # LEARNING CONSTRAINTS
     # These constraints allow to learn a decision tree starting from a

@@ -134,43 +134,7 @@ def set_csp(pos_x, neg_x, n, k):
             sum_list.append(var['l%i,%i' % (i, j)])
         exp = PbEq([(x, 1) for x in sum_list], 1)
         s.add(Implies(Not(var['v%i' % i]), exp))
-    '''
-    # Constraint 4.1: each left/right child must have exactly a parent
-    for j in range(2, n + 1):
-        left_list = []
-        right_list = []
-        for i in range(1, n):
-            if 'l%i,%i' % (i, j) in var:
-                left_list.append(var['l%i,%i' % (i, j)])
-            if 'r%i,%i' % (i, j) in var:
-                right_list.append(var['r%i,%i' % (i, j)])
 
-        if len(left_list) > 0:
-            s.add(PbLe([(x, 1) for x in left_list], 1))
-        if len(right_list) > 0:
-            s.add(PbLe([(x, 1) for x in right_list], 1))
-    '''
-    #'''
-    # Constraint 4.2: nodes on the same level must be labeled increasingly
-    # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
-    for i in range(n - 2, 0, -1):
-        for j in reversed(get_lr(i)):
-            if 'l%i,%i' % (i, j) in var:
-                node_list = []
-                for h in range(i - 1, 0, -1):
-                    if 'l%i,%i' % (h, j - 2) in var:
-                        node_list.append(var['l%i,%i' % (h, j - 2)])
-                if len(node_list) > 0:
-                    s.add(Implies(var['l%i,%i' % (i, j)], PbGe([(x, 1) for x in node_list], 1)))
-        for j in reversed(get_rr(i)):
-            if 'r%i,%i' % (i, j) in var:
-                node_list = []
-                for h in range(i - 1, 0, -1):
-                    if 'r%i,%i' % (h, j - 2) in var:
-                        node_list.append(var['r%i,%i' % (h, j - 2)])
-                if len(node_list) > 0:
-                    s.add(Implies(var['r%i,%i' % (i, j)], PbGe([(x, 1) for x in node_list], 1)))
-    #'''
     # Constraint 5: if the i-th node is a parent then it must have a child
     # pj,i <-> li,j, j in LR(i)
     # pj,i <-> ri,j, j in RR(i)
@@ -190,6 +154,44 @@ def set_csp(pos_x, neg_x, n, k):
             sum_list.append(var['p%i,%i' % (j, i)])
         exp = PbEq([(x, 1) for x in sum_list], 1)
         s.add(exp)
+
+    '''
+    # Constraint 6.1: each left/right child must have exactly a parent
+    for j in range(2, n + 1):
+        left_list = []
+        right_list = []
+        for i in range(1, n):
+            if 'l%i,%i' % (i, j) in var:
+                left_list.append(var['l%i,%i' % (i, j)])
+            if 'r%i,%i' % (i, j) in var:
+                right_list.append(var['r%i,%i' % (i, j)])
+
+        if len(left_list) > 0:
+            s.add(PbLe([(x, 1) for x in left_list], 1))
+        if len(right_list) > 0:
+            s.add(PbLe([(x, 1) for x in right_list], 1))
+    '''
+    # '''
+    # Constraint 6.2: nodes on the same level must be labeled increasingly
+    # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
+    for i in range(n - 2, 0, -1):
+        for j in reversed(get_lr(i)):
+            if 'l%i,%i' % (i, j) in var:
+                node_list = []
+                for h in range(i - 1, 0, -1):
+                    if 'l%i,%i' % (h, j - 2) in var:
+                        node_list.append(var['l%i,%i' % (h, j - 2)])
+                if len(node_list) > 0:
+                    s.add(Implies(var['l%i,%i' % (i, j)], PbGe([(x, 1) for x in node_list], 1)))
+        for j in reversed(get_rr(i)):
+            if 'r%i,%i' % (i, j) in var:
+                node_list = []
+                for h in range(i - 1, 0, -1):
+                    if 'r%i,%i' % (h, j - 2) in var:
+                        node_list.append(var['r%i,%i' % (h, j - 2)])
+                if len(node_list) > 0:
+                    s.add(Implies(var['r%i,%i' % (i, j)], PbGe([(x, 1) for x in node_list], 1)))
+    # '''
 
     # LEARNING CONSTRAINTS
     # These constraints allow to learn a decision tree starting from a

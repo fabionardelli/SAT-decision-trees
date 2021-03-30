@@ -129,42 +129,7 @@ def set_csp(pos_x, neg_x, n, k):
         for j in get_lr(i):
             s += var['l%i,%i' % (i, j)]
         model.Add(s == 1).OnlyEnforceIf(var['v%i' % i].Not())
-    #'''
-    # Constraint 4.1: each left/right child must have exactly a parent
-    for j in range(2, n + 1):
-        left_sum = 0
-        right_sum = 0
-        for i in range(1, n):
-            if 'l%i,%i' % (i, j) in var:
-                left_sum += var['l%i,%i' % (i, j)]
-            if 'r%i,%i' % (i, j) in var:
-                right_sum += var['r%i,%i' % (i, j)]
-            if left_sum > 0:
-                model.Add(left_sum <= 1)
-            if right_sum > 0:
-                model.Add(right_sum <= 1)
-    #'''
-    #'''
-    # Constraint 4.2: nodes on the same level must be labeled increasingly
-    # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
-    for i in range(n - 2, 0, -1):
-        for j in reversed(get_lr(i)):
-            if 'l%i,%i' % (i, j) in var:
-                s = 0
-                for h in range(i - 1, 0, -1):
-                    if 'l%i,%i' % (h, j - 2) in var:
-                        s += var['l%i,%i' % (h, j - 2)]
-                if s > 0:
-                    model.Add(s >= 1).OnlyEnforceIf(var['l%i,%i' % (i, j)])
-        for j in reversed(get_rr(i)):
-            if 'r%i,%i' % (i, j) in var:
-                s = 0
-                for h in range(i - 1, 0, -1):
-                    if 'r%i,%i' % (h, j - 2) in var:
-                        s += var['r%i,%i' % (h, j - 2)]
-                if s > 0:
-                    model.Add(s >= 1).OnlyEnforceIf(var['r%i,%i' % (i, j)])
-    #'''
+
     # Constraint 5: if the i-th node is a parent then it must have a child
     # pj,i <-> li,j, j in LR(i)
     # pj,i <-> ri,j, j in RR(i)
@@ -183,6 +148,43 @@ def set_csp(pos_x, neg_x, n, k):
         for i in range(floor(j / 2), min(j - 1, n) + 1):
             s.append(var['p%i,%i' % (j, i)])
         model.Add(sum(s) == 1)
+
+    # '''
+    # Constraint 6.1: each left/right child must have exactly a parent
+    for j in range(2, n + 1):
+        left_sum = 0
+        right_sum = 0
+        for i in range(1, n):
+            if 'l%i,%i' % (i, j) in var:
+                left_sum += var['l%i,%i' % (i, j)]
+            if 'r%i,%i' % (i, j) in var:
+                right_sum += var['r%i,%i' % (i, j)]
+            if left_sum > 0:
+                model.Add(left_sum <= 1)
+            if right_sum > 0:
+                model.Add(right_sum <= 1)
+    # '''
+    # '''
+    # Constraint 6.2: nodes on the same level must be labeled increasingly
+    # li,j -> lh,(j-2), and ri,j -> rh,(j-2), h < i
+    for i in range(n - 2, 0, -1):
+        for j in reversed(get_lr(i)):
+            if 'l%i,%i' % (i, j) in var:
+                s = 0
+                for h in range(i - 1, 0, -1):
+                    if 'l%i,%i' % (h, j - 2) in var:
+                        s += var['l%i,%i' % (h, j - 2)]
+                if s > 0:
+                    model.Add(s >= 1).OnlyEnforceIf(var['l%i,%i' % (i, j)])
+        for j in reversed(get_rr(i)):
+            if 'r%i,%i' % (i, j) in var:
+                s = 0
+                for h in range(i - 1, 0, -1):
+                    if 'r%i,%i' % (h, j - 2) in var:
+                        s += var['r%i,%i' % (h, j - 2)]
+                if s > 0:
+                    model.Add(s >= 1).OnlyEnforceIf(var['r%i,%i' % (i, j)])
+    # '''
 
     # LEARNING CONSTRAINTS
     # These constraints allow to learn a decision tree starting from a
