@@ -56,7 +56,7 @@ scikit_dt = tree.DecisionTreeClassifier()
 
 # read a dataset
 data = pd.read_csv('datasets/binary/bin-car.csv', delimiter=',', header=None)
-#data = pd.read_csv('data.csv', delimiter=',', header=None, skiprows=1)
+#data = pd.read_csv('datasets/data.csv', delimiter=',', header=None, skiprows=1)
 X = data.iloc[:, :-1].to_numpy(dtype=np.int8)
 y = data.iloc[:, -1].to_numpy(dtype=np.int8)
 
