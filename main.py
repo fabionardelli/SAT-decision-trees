@@ -6,60 +6,16 @@ from sklearn.metrics import precision_score, recall_score, average_precision_sco
 from sklearn import tree
 from decisiontree import DecisionTree
 import time
-
-
-class ResultSet:
-    def __init__(self):
-        self.nodes = 0
-        self.time = 0
-        self.precision = 0
-        self.recall = 0
-        self.avg_precision = 0
-        self.f1 = 0
-        self.accuracy = 0
-        self.matthews = 0
-
-
-def get_mean_scores(res_list):
-    """ Returns a ResultSet object with the mean values of the metrics."""
-
-    num = len(res_list)
-    if num == 0:
-        raise ValueError("Empty res_list!")
-
-    r = ResultSet()
-
-    for res in res_list:
-        r.nodes += res.nodes
-        r.time += res.time
-        r.precision += res.precision
-        r.recall += res.recall
-        r.avg_precision += res.avg_precision
-        r.f1 += res.f1
-        r.accuracy += res.accuracy
-        r.matthews += res.matthews
-
-    r.nodes /= num
-    r.time /= num
-    r.precision /= num
-    r.recall /= num
-    r.avg_precision /= num
-    r.f1 /= num
-    r.accuracy /= num
-    r.matthews /= num
-
-    return r
-
+from utils import ResultSet, get_mean_scores
 
 dt = DecisionTree()
 scikit_dt = tree.DecisionTreeClassifier()
 
 # read a dataset
 data = pd.read_csv('datasets/binary/bin-car.csv', delimiter=',', header=None)
-#data = pd.read_csv('datasets/data.csv', delimiter=',', header=None, skiprows=1)
+# data = pd.read_csv('datasets/data.csv', delimiter=',', header=None, skiprows=1)
 X = data.iloc[:, :-1].to_numpy(dtype=np.int8)
 y = data.iloc[:, -1].to_numpy(dtype=np.int8)
-
 
 dt_results_list = []
 scikit_results_list = []
@@ -70,12 +26,12 @@ for s in range(1, 21):
 
     start = time.time()
     n = dt.fit_optimal(X_train, y_train)
-    #n = dt.fit(X_train, y_train, 5)
+    # n = dt.fit(X_train, y_train, 5)
     end = time.time()
 
     # for test purposes, to check correctness of classifier
-    #X_test = X_train
-    #y_test = y_train
+    # X_test = X_train
+    # y_test = y_train
 
     dt_result = ResultSet()
 

@@ -33,3 +33,50 @@ def one_hot_encode(data):
             bin_data[row, feature_domains[col][value]] = 1
 
     return bin_data
+
+
+class ResultSet:
+    """ Class to gather test results"""
+
+    def __init__(self):
+        self.nodes = 0
+        self.time = 0
+        self.precision = 0
+        self.recall = 0
+        self.avg_precision = 0
+        self.f1 = 0
+        self.accuracy = 0
+        self.matthews = 0
+
+
+def get_mean_scores(res_list):
+    """ Returns a ResultSet object with the mean values of the metrics.
+        Takes a list of ResultSet objects in input.
+    """
+
+    num = len(res_list)
+    if num == 0:
+        raise ValueError("Empty res_list!")
+
+    r = ResultSet()
+
+    for res in res_list:
+        r.nodes += res.nodes
+        r.time += res.time
+        r.precision += res.precision
+        r.recall += res.recall
+        r.avg_precision += res.avg_precision
+        r.f1 += res.f1
+        r.accuracy += res.accuracy
+        r.matthews += res.matthews
+
+    r.nodes /= num
+    r.time /= num
+    r.precision /= num
+    r.recall /= num
+    r.avg_precision /= num
+    r.f1 /= num
+    r.accuracy /= num
+    r.matthews /= num
+
+    return r
