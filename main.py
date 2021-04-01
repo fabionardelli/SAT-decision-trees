@@ -6,76 +6,45 @@ from sklearn.metrics import precision_score, recall_score, average_precision_sco
 from sklearn import tree
 from decisiontree import DecisionTree
 import time
-
-
-class ResultSet:
-    def __init__(self):
-        self.nodes = 0
-        self.time = 0
-        self.precision = 0
-        self.recall = 0
-        self.avg_precision = 0
-        self.f1 = 0
-        self.accuracy = 0
-        self.matthews = 0
-
-
-def get_mean_scores(res_list):
-    """ Returns a ResultSet object with the mean values of the metrics."""
-
-    num = len(res_list)
-    if num == 0:
-        raise ValueError("Empty res_list!")
-
-    r = ResultSet()
-
-    for res in res_list:
-        r.nodes += res.nodes
-        r.time += res.time
-        r.precision += res.precision
-        r.recall += res.recall
-        r.avg_precision += res.avg_precision
-        r.f1 += res.f1
-        r.accuracy += res.accuracy
-        r.matthews += res.matthews
-
-    r.nodes /= num
-    r.time /= num
-    r.precision /= num
-    r.recall /= num
-    r.avg_precision /= num
-    r.f1 /= num
-    r.accuracy /= num
-    r.matthews /= num
-
-    return r
-
-
+from utils import ResultSet, get_mean_scores
+import random
 dt = DecisionTree()
 scikit_dt = tree.DecisionTreeClassifier()
 
 # read a dataset
 data = pd.read_csv('datasets/binary/bin-car.csv', delimiter=',', header=None)
-#data = pd.read_csv('datasets/data.csv', delimiter=',', header=None, skiprows=1)
+#data = pd.read_csv('datasets/binary/breast-cancer-un.csv', delimiter=',', header=None)
+#data = pd.read_csv('datasets/binary/heart-cleveland-un.csv', delimiter=',', header=None)
+
 X = data.iloc[:, :-1].to_numpy(dtype=np.int8)
 y = data.iloc[:, -1].to_numpy(dtype=np.int8)
-
 
 dt_results_list = []
 scikit_results_list = []
 
-for s in range(1, 21):
+random.seed(17)
+seeds = random.sample(range(1, 32768), 40)
+
+for s in seeds:
     # split dataset in training and test set
+
+    # setting for "car" dataset
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1708, random_state=s)
 
+    # setting for "breast-cancer" dataset
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=633, random_state=s)
+
+    # setting for "heart cleveland" dataset
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=281, random_state=s)
+    
     start = time.time()
     n = dt.fit_optimal(X_train, y_train)
-    #n = dt.fit(X_train, y_train, 5)
+    # n = dt.fit(X_train, y_train, 5)
     end = time.time()
 
     # for test purposes, to check correctness of classifier
-    #X_test = X_train
-    #y_test = y_train
+    # X_test = X_train
+    # y_test = y_train
 
     dt_result = ResultSet()
 
@@ -137,14 +106,14 @@ Results with 20 runs with a sample of 20 examples from the car dataset
 Comparison of classifier performance with sklearn DecisionTreeClassifier
 (all constraints active)
                       dt     sklearn dt
-         Nodes:     13.4           10.1
-          Time:     1.05           0.00
-     Precision:     0.66           0.62
-        Recall:     0.71           0.67
-Avg. Precision:     0.57           0.53
-            F1:     0.67           0.63
-      Accuracy:     0.81           0.77
-           MCC:     0.55           0.48
+         Nodes:     11.3           9.2
+          Time:     0.51           0.00
+     Precision:     0.69           0.63
+        Recall:     0.72           0.60
+Avg. Precision:     0.60           0.51
+            F1:     0.69           0.59
+      Accuracy:     0.82           0.77
+           MCC:     0.57           0.45
 
 
 Comparison of execution times with different implementations
@@ -196,4 +165,52 @@ with 6.2, 13.1 and original additional constraints
            
 With all constraints
 1.05
+
+
+results with 40 run
+
+"Car" dataset, 20 examples
+                      dt     sklearn dt
+         Nodes:     10.65          9.05
+          Time:     0.54           0.00
+     Precision:     0.68           0.61
+        Recall:     0.72           0.60
+Avg. Precision:     0.59           0.50
+            F1:     0.69           0.58
+      Accuracy:     0.81           0.75
+           MCC:     0.57           0.43
+         
+           
+"Breast cancer dataset", 50 examples
+                      dt     sklearn dt
+         Nodes:     8.95           8.7
+          Time:     9.64           0.00
+     Precision:     0.86           0.85
+        Recall:     0.82           0.85
+Avg. Precision:     0.76           0.78
+            F1:     0.83           0.85
+      Accuracy:     0.89           0.89
+           MCC:     0.75           0.77
+           
+"Heart Cleveland" dataset, 10 examples
+                     dt     sklearn dt
+         Nodes:     4.4            4.4
+          Time:     0.34           0.00
+     Precision:     0.71           0.69
+        Recall:     0.67           0.66
+Avg. Precision:     0.66           0.64
+            F1:     0.67           0.65
+      Accuracy:     0.67           0.65
+           MCC:     0.37           0.32
+        
+"Heart Cleveland" dataset, 15 examples
+                      dt     sklearn dt
+         Nodes:     6.3            6.4
+          Time:     1.96           0.00
+     Precision:     0.69           0.71
+        Recall:     0.73           0.70
+Avg. Precision:     0.65           0.66
+            F1:     0.70           0.69
+      Accuracy:     0.67           0.67
+           MCC:     0.35           0.36
 '''
