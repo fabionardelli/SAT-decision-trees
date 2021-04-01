@@ -8,6 +8,8 @@ from decisiontree import DecisionTree
 import time
 from utils import ResultSet, get_mean_scores
 import random
+
+
 dt = DecisionTree()
 scikit_dt = tree.DecisionTreeClassifier()
 
@@ -23,6 +25,8 @@ dt_results_list = []
 scikit_results_list = []
 
 random.seed(17)
+
+# generate 40 random seeds for dataset sampling
 seeds = random.sample(range(1, 32768), 40)
 
 for s in seeds:
