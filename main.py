@@ -196,16 +196,6 @@ Avg. Precision:     0.76           0.78
       Accuracy:     0.89           0.89
            MCC:     0.75           0.77
            
-"Heart Cleveland" dataset, 10 examples
-                     dt     sklearn dt
-         Nodes:     4.4            4.4
-          Time:     0.34           0.00
-     Precision:     0.71           0.69
-        Recall:     0.67           0.66
-Avg. Precision:     0.66           0.64
-            F1:     0.67           0.65
-      Accuracy:     0.67           0.65
-           MCC:     0.37           0.32
         
 "Heart Cleveland" dataset, 15 examples
                       dt     sklearn dt
